@@ -55,13 +55,13 @@ module.exports = class Parser {
       },
       arg = false;
     let nesting = false,
-      end = true,
+      depth = 0,
       startAt = -1;
 
     for (let i = 0; i < words.length; i++) {
       let word = words[i];
-      const next = words[i + 1] || ')';
-      if (!capture && word === '(') {
+      const next = words[i + 1] || '';
+      if (!capture && word === '(' && !nesting) {
         nesting = true;
         startAt = i;
         continue;
@@ -70,13 +70,13 @@ module.exports = class Parser {
       if (nesting) {
         let bypass = false;
         if (word === '(')
-          end = false;
+          depth++;
         if (word === ')')
-          if (end) {
+          if (depth === 0) {
             word = this.sortWordList(words.slice(startAt + 1, i));
             nesting = false;
             bypass = true;
-          } else end = true;
+          } else depth--;
         if (!bypass)
           continue;
       }
