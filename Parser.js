@@ -131,7 +131,9 @@ const parser = new module.exports({
     'file:///path/to/abcdef3',
     'file:///path/to/abcdef4'
   ],
-  'hi lol': ['file:///path/to/hi_lol']
+  'hi lol': ['file:///path/to/hi_lol'],
+  hi: ['file:///path/to/hi'],
+  lol: ['file:///path/to/hi']
 });
 
 for (let input of testInputs)
