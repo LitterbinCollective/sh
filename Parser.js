@@ -1,12 +1,31 @@
 module.exports = class Parser {
   constructor(shat) {
     this.shat = shat;
+
+    this.tree = {};
+    for (let soundName in this.shat) {
+      const soundData = this.shat[soundName];
+      const words = soundName.split(' ');
+      let next = this.tree;
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+
+        if (!next[word])
+          next[word] = {};
+        next = next[word];
+
+        if (i === words.length - 1) {
+          next._SD = soundData;
+          break;
+        }
+      }
+    }
   }
 
   buildWordList(input) {
-    const words = []
+    const words = [];
     const regex = /[\(\),:]/g;
-    let temp = []
+    let temp = [];
     for (let i = 0; i < input.length + 1; i++) {
       const char = input[i] || ')';
       const last = input[i - 1] || '';
@@ -22,10 +41,10 @@ module.exports = class Parser {
       temp.push(char);
     }
 
-    return words
+    return words;
   }
 
-  findMods(words) {
+  sortWordList(words) {
     const regex = /[\(\),]/g;
     const result = [];
     let pushNew = true;
@@ -51,10 +70,10 @@ module.exports = class Parser {
       if (nesting) {
         let bypass = false;
         if (word === '(')
-          end = false
+          end = false;
         if (word === ')')
           if (end) {
-            word = this.findMods(words.slice(startAt + 1, i));
+            word = this.sortWordList(words.slice(startAt + 1, i));
             nesting = false;
             bypass = true;
           } else end = true;
@@ -77,7 +96,7 @@ module.exports = class Parser {
         if (next === '(')
           arg = true
         else if (word === ')')
-          arg = false
+          arg = false;
 
         if (!arg && next.search(regex) === -1) {
           result[result.length - 1].mods.push(captured);
@@ -107,9 +126,69 @@ module.exports = class Parser {
     return result
   }
 
+  findSounds(words) {
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const newWords = [];
+      let next = this.tree;
+      for (let k = 0; k < word.words.length; k++) {
+        let wordData = word.words[k];
+        let realm = -1;
+        let restart = false;
+
+        if (typeof wordData === 'object') {
+          newWords.push({ words: this.findSounds([ wordData ]), mods: [] });
+          continue;
+        }
+
+        if (wordData.search('#') !== -1) {
+          const split = wordData.split('#');
+          wordData = split[0];
+          realm = Number(split[1]) === NaN ? realm : Number(split[1]);
+          restart = true;
+        }
+
+        if (next[wordData] === undefined)
+          restart = true
+        else {
+          next = next[wordData];
+          if (next[word.words[k + 1]] === undefined)
+            restart = true;
+        }
+
+        if ((k === word.words.length - 1 || restart) && next._SD) {
+          realm = realm === -1 ?
+            1 + Math.floor(Math.random() * (next._SD.length - 1)) :
+            realm;
+
+          newWords.push(next._SD[realm - 1]);
+          next = this.tree;
+        }
+      }
+
+      word.words = newWords;
+    }
+
+    for (let i = 0; i < words.length; i++) {
+      let areAllStrings = words[i].words.reduce((pV, cV) => {
+         return pV && typeof cV === 'string'
+      }, true);
+
+      if (areAllStrings) {
+        for (let k = 0; k < words[i].words.length - 1; k++) {
+          const removed = words[i].words.splice(k, 1);
+          words.splice(i + k, 0, { words: [ removed ], mods: [] });
+        }
+      }
+    }
+
+    return words;
+  }
+
   parse(input) {
-    const words = this.buildWordList(input);
-    return this.findMods(words);
+    let words = this.buildWordList(input);
+    words = this.sortWordList(words);
+    return this.findSounds(words);
   }
 }
 
@@ -117,25 +196,10 @@ module.exports = class Parser {
 
 // This needs to work with these:
 const testInputs = [
-  'shit abcdef hi lol',
-  '(shit) abcdef#4 hi lol',
-  '(shit abcdef):lfopitch(12, 34) hi lol:echo',
-  '(shit:echo abcdef):lfopitch hi lol:echo'
+  '(lol lmfao:echo keemstar screaming:volume(2)):lfovolume white people be like keemstar screaming:echo black people be like overused thud:lfopitch:echo bruh#3',
 ];
 
-const parser = new module.exports({
-  shit: ['file:///path/to/shit'],
-  abcdef: [
-    'file:///path/to/abcdef1',
-    'file:///path/to/abcdef2',
-    'file:///path/to/abcdef3',
-    'file:///path/to/abcdef4'
-  ],
-  'hi lol': ['file:///path/to/hi_lol'],
-  hi: ['file:///path/to/hi'],
-  lol: ['file:///path/to/hi']
-});
+const parser = new module.exports(JSON.parse(require('fs').readFileSync('shat.txt')));
 
 for (let input of testInputs)
-  console.log('==== INPUT', input, '====', '\n', parser.parse(input)),
-  console.log('result[0] = ', parser.parse(input)[0], '\n\n');
+  require('fs').writeFileSync('result.json', JSON.stringify(parser.parse(input), null, 2));
