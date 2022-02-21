@@ -61,6 +61,7 @@ module.exports = class Parser {
     for (let i = 0; i < words.length; i++) {
       let word = words[i];
       const next = words[i + 1] || '';
+      console.log(capture, nesting, word)
       if (!capture && word === '(' && !nesting) {
         nesting = true;
         startAt = i;
@@ -95,10 +96,10 @@ module.exports = class Parser {
 
         if (next === '(')
           arg = true
-        else if (word === ')')
+        if (word === ')')
           arg = false;
 
-        if (!arg && next.search(regex) === -1) {
+        if (!arg) {
           result[result.length - 1].mods.push(captured);
           capture = false;
           pushNew = true;
