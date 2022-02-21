@@ -191,15 +191,3 @@ module.exports = class Parser {
     return this.findSounds(words);
   }
 }
-
-// TESTING //
-
-// This needs to work with these:
-const testInputs = [
-  '(lol lmfao:echo keemstar screaming:volume(2)):lfovolume white people be like keemstar screaming:echo black people be like overused thud:lfopitch:echo bruh#3',
-];
-
-const parser = new module.exports(JSON.parse(require('fs').readFileSync('shat.txt')));
-
-for (let input of testInputs)
-  require('fs').writeFileSync('result.json', JSON.stringify(parser.parse(input), null, 2));
