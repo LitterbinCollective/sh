@@ -61,7 +61,6 @@ module.exports = class Parser {
     for (let i = 0; i < words.length; i++) {
       let word = words[i];
       const next = words[i + 1] || '';
-      console.log(capture, nesting, word)
       if (!capture && word === '(' && !nesting) {
         nesting = true;
         startAt = i;
@@ -91,15 +90,32 @@ module.exports = class Parser {
         if (!captured.mod)
           captured.mod = word;
 
-        if (arg && word.search(regex) === -1)
+        if (arg && word.search(regex) === -1) {
+          if (isNaN(Number(word))) {
+            const collected = captured.args.length;
+            capture = false;
+            arg = false;
+            pushNew = true;
+            captured = {
+              mod: false,
+              args: []
+            };
+
+            nesting = true;
+            startAt = i - (collected + 1);
+            continue;
+          }
+
           captured.args.push(word);
+        }
+
 
         if (next === '(')
           arg = true
         if (word === ')')
           arg = false;
 
-        if (!arg) {
+        if (!arg || i === words.length) {
           result[result.length - 1].mods.push(captured);
           capture = false;
           pushNew = true;
@@ -175,12 +191,11 @@ module.exports = class Parser {
          return pV && typeof cV === 'string'
       }, true);
 
-      if (areAllStrings) {
+      if (areAllStrings)
         for (let k = 0; k < words[i].words.length - 1; k++) {
           const removed = words[i].words.splice(k, 1);
-          words.splice(i + k, 0, { words: [ removed ], mods: [] });
+          words.splice(i + k, 0, { words: removed, mods: [] });
         }
-      }
     }
 
     return words;
