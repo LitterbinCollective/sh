@@ -1,5 +1,12 @@
 node_modules/
+
+# Testing files used locally.
 result.json
 shat.txt
 test.raw
 4inthemorning.raw
+shat.json
+burunyaa.raw
+ragtime.raw
+test.mp3
+hi.raw

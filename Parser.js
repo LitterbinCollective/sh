@@ -154,7 +154,10 @@ module.exports = class Parser {
         let restart = false;
 
         if (typeof wordData === 'object') {
-          newWords.push({ words: this.findSounds([ wordData ]), mods: [] });
+          newWords.push({
+            words: this.findSounds([wordData]),
+            mods: []
+          });
           continue;
         }
 
@@ -187,14 +190,15 @@ module.exports = class Parser {
     }
 
     for (let i = 0; i < words.length; i++) {
-      let areAllStrings = words[i].words.reduce((pV, cV) => {
-         return pV && typeof cV === 'string'
-      }, true);
+      let areAllStrings = words[i].words.reduce((pV, cV) => pV && typeof cV === 'string', true);
 
       if (areAllStrings)
         for (let k = 0; k < words[i].words.length - 1; k++) {
           const removed = words[i].words.splice(k, 1);
-          words.splice(i + k, 0, { words: removed, mods: [] });
+          words.splice(i + k, 0, {
+            words: removed,
+            mods: []
+          });
         }
     }
 
