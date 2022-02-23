@@ -1,4 +1,5 @@
 node_modules/
+cache/*
 
 # Testing files used locally.
 result.json

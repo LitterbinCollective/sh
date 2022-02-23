@@ -9,6 +9,8 @@ module.exports = class Sh {
 }
 
 const sh = new module.exports(require('./shat.json'));
-const script = sh.Parser.parse('fuck you:lfopitch(2, 5) (shit:cut(10) ass):echo(1) hi:pitch(5)');
-console.log(script);
-console.log(sh.Audio.scriptToTimeline(script));
+const script = sh.Parser.parse('hi:pitch(0.1)');
+
+(async function() {
+  await sh.Audio.run(script);
+})();
