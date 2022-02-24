@@ -55,21 +55,21 @@ module.exports = class Audio {
             responseType: 'stream'
           });
 
-          const stream = spawn('ffmpeg', [
+          const child = spawn('ffmpeg', [
             '-i', '-',
             '-ac', this.AUDIO_CHANNELS,
             '-ar', this.SAMPLE_RATE,
             '-f', 's16le',
             '-'
           ]);
-          data.pipe(stream.stdin);
+          data.pipe(child.stdin);
 
           const buffers = [];
-          stream.stdout.on('data', (data) =>
+          child.stdout.on('data', (data) =>
             buffers.push(data)
           );
 
-          stream.stdout.on('end', () => {
+          child.stdout.on('end', () => {
             if (!fs.existsSync('cache/')) fs.mkdirSync('cache/');
             fs.writeFileSync('cache/' + fileName + '.raw', Buffer.concat(buffers));
             res('cache/' + fileName + '.raw');
@@ -136,17 +136,20 @@ module.exports = class Audio {
 
     filter.push(
       named.reduce((pV, cV) => pV += `[${cV}]`, '') +
-      `amix=inputs=${inputs.length / 8}:dropout_transition=0`
+      `amix=inputs=${inputs.length / 8}:dropout_transition=0[outa]`
     )
 
     let args = [
-      '-map', '"[outa]"',
+      '-map', '[outa]',
       '-f', 's16le',
       '-ar', this.SAMPLE_RATE,
       '-ac', this.AUDIO_CHANNELS,
       '-'
     ];
-    args = inputs.concat('-filter_complex', '"' + filter.join(';') + '"', args);
-    console.log(args.join(' '));
+    args = inputs.concat('-filter_complex', filter.join(';'), args);
+
+    const child = spawn('ffmpeg', args);
+    child.stderr.on('data', (buf) => console.log(buf.toString()));
+    return child.stdout;
   }
 }

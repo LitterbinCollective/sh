@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/NonagonNetwork/sh#readme",
   "dependencies": {
-    "axios": "^0.26.0"
+    "axios": "^0.26.0",
+    "speaker": "^0.5.3"
   }
 }
