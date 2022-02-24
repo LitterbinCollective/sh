@@ -9,7 +9,7 @@ module.exports = class Sh {
 }
 
 const sh = new module.exports(require('./shat.json'));
-const script = sh.Parser.parse('hi:pitch(0.1)');
+const script = sh.Parser.parse('go out and adjust my mind:pitch(0.5) fuck');
 
 (async function() {
   await sh.Audio.run(script);

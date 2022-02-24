@@ -88,10 +88,12 @@ module.exports = class Audio {
     const NAME_LENGTH = 8;
     const filter = [];
     const named = [];
+    const delays = [];
 
     let inputs = await Promise.all(
       timeline.map(async ({ link }) => {
         const path = await this.get(link);
+        delays.push(this.calculateTimeLength(path) * 1000);
         return [
           '-f', 's16le',
           '-ar', this.SAMPLE_RATE,
@@ -108,20 +110,33 @@ module.exports = class Audio {
         const modifier = this.modifiers[mod];
         if (!modifier) continue;
         const names = [named[named.length - 1]];
-        filter.push(modifier(args).replace(/{(\d+)}/g, (_match, number) => {
+        const returned = modifier(args, delays[named.length - 1]);
+
+        filter.push(returned.filter.replace(/{(\d+)}/g, (_match, number) => {
           let name = names[number];
           if (!name)
             name = Math.random().toString(16).substring(2, NAME_LENGTH),
             names.push(name);
           return name;
         }))
+
+        if (returned.delay)
+          delays[named.length - 1] = returned.delay;
         named[named.length - 1] = names[names.length - 1];
       }
     }
 
+    let del = 0;
+    for (let i = 0; i < delays.length; i++) {
+      const newName = Math.random().toString(16).substring(2, NAME_LENGTH);
+      filter.push(`[${named[i]}]adelay=${del}|${del}[${newName}]`);
+      del += delays[i];
+      named[i] = newName;
+    }
+
     filter.push(
       named.reduce((pV, cV) => pV += `[${cV}]`, '') +
-      `concat=n=${inputs.length / 8}:v=0:a=1[outa]`
+      `amix=inputs=${inputs.length / 8}:dropout_transition=0`
     )
 
     let args = [
