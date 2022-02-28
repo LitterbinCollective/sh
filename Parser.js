@@ -61,6 +61,7 @@ module.exports = class Parser {
     for (let i = 0; i < words.length; i++) {
       let word = words[i];
       const next = words[i + 1] || '';
+
       if (!capture && word === '(' && !nesting) {
         nesting = true;
         startAt = i;
@@ -76,9 +77,9 @@ module.exports = class Parser {
             word = this.sortWordList(words.slice(startAt + 1, i));
             nesting = false;
             bypass = true;
+            pushNew = true;
           } else depth--;
-        if (!bypass)
-          continue;
+        if (!bypass) continue;
       }
 
       if (word === ':') {
