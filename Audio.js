@@ -112,13 +112,14 @@ module.exports = class Audio {
         const names = [named[named.length - 1]];
         const returned = modifier(args, delays[named.length - 1]);
 
-        filter.push(returned.filter.replace(/{(\d+)}/g, (_match, number) => {
-          let name = names[number];
-          if (!name)
-            name = Math.random().toString(16).substring(2, NAME_LENGTH),
-            names.push(name);
-          return name;
-        }))
+        if (returned.filter)
+          filter.push(returned.filter.replace(/{(\d+)}/g, (_match, number) => {
+            let name = names[number];
+            if (!name)
+              name = Math.random().toString(16).substring(2, NAME_LENGTH),
+              names.push(name);
+            return name;
+          }));
 
         if (returned.delay)
           delays[named.length - 1] = returned.delay;
