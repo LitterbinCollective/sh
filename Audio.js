@@ -7,11 +7,19 @@ module.exports = class Audio {
     this.AUDIO_CHANNELS = 2;
     this.SAMPLE_RATE = 48000;
 
-    this.modifiers = {};
-    for (const file of fs.readdirSync('modifiers')) {
-      const mod = require('./modifiers/' + file);
-      this.modifiers[file.replace(/\.[^/.]+$/, '')] = mod;
-    }
+    this.modifiers = {
+      cutoff: require('./modifiers/cutoff'),
+      duration: require('./modifiers/duration'),
+      echo: require('./modifiers/echo'),
+      highpass: require('./modifiers/highpass'),
+      lfopitch: require('./modifiers/lfopitch'),
+      lfovolume: require('./modifiers/lfovolume'),
+      lowpass: require('./modifiers/lowpass'),
+      pitch: require('./modifiers/pitch'),
+      repeat: require('./modifiers/repeat'),
+      startpos: require('./modifiers/startpos'),
+      volume: require('./modifiers/volume')
+    };
   }
 
   scriptToTimeline(script) {
