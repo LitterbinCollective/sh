@@ -149,6 +149,8 @@ module.exports = class Parser {
       const word = words[i];
       const newWords = [];
       let next = this.tree;
+      let iterations = 0;
+      let prev = this.tree;
       for (let k = 0; k < word.words.length; k++) {
         let wordData = word.words[k];
         let realm = -1;
@@ -170,21 +172,33 @@ module.exports = class Parser {
         }
 
         if (next[wordData] === undefined)
-          restart = true
+          restart = true,
+          iterations = 1;
         else {
+          prev = next;
           next = next[wordData];
-          if (next[word.words[k + 1]] === undefined)
+          if (next[word.words[k + 1]] === undefined) {
+            if (!next._SD)
+              next = prev;
+            else
+              iterations = 0;
             restart = true;
+          }
         }
 
         if ((k === word.words.length - 1 || restart) && next._SD) {
-          realm = realm === -1 ?
-            1 + Math.floor(Math.random() * (next._SD.length - 1)) :
-            realm;
+          for (let iter = 0; iter <= iterations; iter++) {
+            let choose = 1 + Math.floor(Math.random() * (next._SD.length - 1))
+            if (iter === iterations - 1 && realm !== -1)
+              choose = realm;
+            newWords.push(next._SD[choose - 1]);
+          }
 
-          newWords.push(next._SD[realm - 1]);
           next = this.tree;
+          prev = this.tree;
+          iterations = -1;
         }
+        iterations++;
       }
 
       word.words = newWords;
