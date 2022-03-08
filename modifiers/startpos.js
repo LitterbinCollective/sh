@@ -8,7 +8,7 @@ module.exports = function([ percent ], delay) {
     percent = 0;
   percent = clamp(percent, 0, 100) / 100;
   return {
-    filter: `[{0}]atrim=start=${(delay * percent) / 1000}:end=${delay / 1000}[{1}]`,
+    filter: `[{0}]atrim=start=${delay * percent}ms:end=${delay}ms[{1}]`,
     delay: delay - delay * percent
   };
 }
