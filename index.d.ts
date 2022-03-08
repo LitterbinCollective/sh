@@ -12,3 +12,5 @@ declare class Sh {
   public Audio: Audio;
   public Parser: Parser;
 }
+
+export = Sh;
