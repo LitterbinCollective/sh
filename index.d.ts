@@ -9,6 +9,7 @@ declare class Audio {
 }
 
 declare class Sh {
+  constructor(list: any);
   public Audio: Audio;
   public Parser: Parser;
 }
