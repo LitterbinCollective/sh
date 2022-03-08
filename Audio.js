@@ -156,7 +156,6 @@ module.exports = class Audio {
       '-'
     ];
     args = inputs.concat('-filter_complex', filter.join(';'), args);
-    args.unshift('-re');
 
     const child = spawn('ffmpeg', args);
     child.stderr.on('data', (buf) => console.log(buf.toString()));
