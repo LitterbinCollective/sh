@@ -1,4 +1,4 @@
-module.exports = function([ percent ]) {
+export function njs([ percent ]) {
   percent = Number(percent);
   if (isNaN(percent) || !isFinite(percent))
     percent = 1;

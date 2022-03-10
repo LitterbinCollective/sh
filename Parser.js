@@ -1,4 +1,4 @@
-module.exports = class Parser {
+export default class Parser {
   constructor(shat) {
     this.shat = shat;
 
@@ -167,7 +167,7 @@ module.exports = class Parser {
         if (wordData.search('#') !== -1) {
           const split = wordData.split('#');
           wordData = split[0];
-          realm = Number(split[1]) === NaN ? realm : Number(split[1]);
+          realm = isNaN(Number(split[1])) ? realm : Number(split[1]);
           restart = true;
         }
 

@@ -1,4 +1,4 @@
-module.exports = function([ num ], delay) {
+export function njs([ num ], delay) {
   num = Number(num);
   if (isNaN(num) || !isFinite(num) || num <= 0)
     num = 1;

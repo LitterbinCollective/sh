@@ -1,6 +1,8 @@
 node_modules/
 cache/*
 
+sh.min.js
+
 # Testing files used locally.
 result.json
 shat.txt

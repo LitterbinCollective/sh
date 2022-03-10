@@ -1,4 +1,4 @@
-module.exports = function([ delay ], prevDelay) {
+export function njs([ delay ], prevDelay) {
   delay = Number(delay);
   if (isNaN(delay) || !isFinite(delay))
     delay = prevDelay / 1000;
