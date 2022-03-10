@@ -1,4 +1,4 @@
-module.exports = function([ factor ]) {
+export function njs([ factor ]) {
   factor = Number(factor);
   if (isNaN(factor) || !isFinite(factor))
     factor = 1;

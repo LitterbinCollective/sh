@@ -1,4 +1,4 @@
-module.exports = function(args, delay) {
+export function njs(args, delay) {
   const defaults = [ 0.25, 0.5 ];
   for (let a = 0; a < 2; a++) {
     const x = args[a];

@@ -1,24 +1,24 @@
-const axios = require('axios');
-const { spawn } = require('child_process');
-const fs = require('fs');
+import axios from 'axios';
+import { spawn } from 'child_process';
+import fs from 'fs';
 
-module.exports = class Audio {
+export default class Audio {
   constructor () {
     this.AUDIO_CHANNELS = 2;
     this.SAMPLE_RATE = 48000;
 
     this.modifiers = {
-      cutoff: require('./modifiers/cutoff'),
-      duration: require('./modifiers/duration'),
-      echo: require('./modifiers/echo'),
-      highpass: require('./modifiers/highpass'),
-      lfopitch: require('./modifiers/lfopitch'),
-      lfovolume: require('./modifiers/lfovolume'),
-      lowpass: require('./modifiers/lowpass'),
-      pitch: require('./modifiers/pitch'),
-      repeat: require('./modifiers/repeat'),
-      startpos: require('./modifiers/startpos'),
-      volume: require('./modifiers/volume')
+      cutoff: import('./modifiers/cutoff.js').njs,
+      duration: import('./modifiers/duration.js').njs,
+      echo: import('./modifiers/echo.js').njs,
+      highpass: import('./modifiers/highpass.js').njs,
+      lfopitch: import('./modifiers/lfopitch.js').njs,
+      lfovolume: import('./modifiers/lfovolume.js').njs,
+      lowpass: import('./modifiers/lowpass.js').njs,
+      pitch: import('./modifiers/pitch.js').njs,
+      repeat: import('./modifiers/repeat.js').njs,
+      startpos: import('./modifiers/startpos.js').njs,
+      volume: import('./modifiers/volume.js').njs
     };
   }
 
