@@ -4,10 +4,12 @@ A chatsound processor written in JS.
 ## Installation
 Run `npm install github:NonagonNetwork/sh` to install.
 
+*If you're planning to use this in Node.JS, please make sure you have
+`ffmpeg` installed and put in PATH environment variable.*
+
 ## Examples
 
 ### Node.JS
-Node.JS requires `ffmpeg` to run, else it will not work.
 ```js
 const Sh = require('sh');
 
