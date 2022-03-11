@@ -13,7 +13,7 @@ Run `npm install github:NonagonNetwork/sh` to install.
 ```js
 const Sh = require('sh');
 
-// if you have a long list, this can take a second to load,
+// If you have a long list, this can take a second to load,
 // as it creates a tree from it.
 const sh = new Sh({
   "chat sound here": [
@@ -49,6 +49,7 @@ const sh = new Sh({
 });
 
 const script = sh.Parser.parse('more chat sound here more more');
-// This plays the sounds in this version, hence does not return anything.
+// This plays the sounds in this version, hence does not
+// return anything.
 sh.Audio.run(script);
 ```

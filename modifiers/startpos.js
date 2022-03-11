@@ -12,3 +12,15 @@ export function njs([ percent ], delay) {
     delay: delay - delay * percent
   };
 }
+
+export function browser([ percent ], delay) {
+  percent = Number(percent);
+  if (isNaN(percent) || !isFinite(percent))
+    percent = 0;
+  percent = clamp(percent, 0, 100) / 100;
+
+  return {
+    offset: delay * percent,
+    delay: delay - delay * percent
+  };
+}

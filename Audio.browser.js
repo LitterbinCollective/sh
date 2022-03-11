@@ -2,6 +2,17 @@ export default class AudioBrowser {
   constructor () {
     const AudioContext = window.AudioContext || window.webkitAudioContext
     this.audioCtx = new AudioContext();
+
+    this.loadModifiers();
+  }
+
+  async loadModifiers() {
+    this.modifiers = {
+      cutoff: (await import('./modifiers/cutoff.js')).browser,
+      duration: (await import('./modifiers/duration.js')).browser,
+      pitch: (await import('./modifiers/pitch.js')).browser,
+      startpos: (await import('./modifiers/startpos.js')).browser
+    }
   }
 
   scriptToTimeline(script) {
@@ -40,21 +51,45 @@ export default class AudioBrowser {
   }
 
   async run(script) {
+    if (this.audioCtx.state === 'suspended')
+      this.audioCtx.resume();
     const timeline = this.scriptToTimeline(script);
     const inputs = await Promise.all(
-      timeline.map(({ link }) => this.get(link))
+      timeline.map(async ({ link }) => {
+        const trackSrc = this.audioCtx.createBufferSource();
+        trackSrc.buffer = await this.get(link);
+        return trackSrc;
+      })
     );
-    let duration = inputs.map(({ duration }) => duration);
 
-    for (const input of inputs) {
-      if (this.audioCtx.state === 'suspended')
-        this.audioCtx.resume();
-      const trackSrc = this.audioCtx.createBufferSource();
-      trackSrc.buffer = input;
-      trackSrc.connect(this.audioCtx.destination);
+    let duration = inputs.map(({ buffer }) => buffer.duration * 1000);
+    let ends = duration;
+    let offsets = inputs.map(() => 0);
 
-      trackSrc.start();
-      await this.wait(input.duration * 1000);
+    for (let i = 0; i < inputs.length; i++) {
+      const time = timeline[i];
+      let finalInput = inputs[i];
+      for (const { mod, args } of time.mods) {
+        const modifier = this.modifiers[mod];
+        if (!modifier) continue;
+
+        const { delay, end, offset, node } = await modifier(args, duration[i], offsets[i], finalInput, this.audioCtx);
+        console.log(mod, args, delay, end, offset, node);
+        if (node) finalInput = node;
+        if (offset) offsets[i] = offset;
+        if (end) ends[i] = end;
+        if (delay) duration[i] = delay;
+      }
+      inputs[i] = finalInput;
+    }
+
+    for (let i = 0; i < inputs.length; i++) {
+      const input = inputs[i];
+      const time = duration[i];
+      input.connect(this.audioCtx.destination);
+
+      input.start(0, offsets[i] / 1000, ends[i] / 1000);
+      await this.wait(time);
     }
   }
 }
