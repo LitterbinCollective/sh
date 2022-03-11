@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/NonagonNetwork/sh#readme",
   "dependencies": {
-    "axios": "^0.26.0"
+    "axios": "^0.26.0",
+    "tone": "^14.7.77"
   },
   "devDependencies": {
     "esbuild": "^0.14.25"

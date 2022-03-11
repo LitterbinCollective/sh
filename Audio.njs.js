@@ -7,18 +7,22 @@ export default class Audio {
     this.AUDIO_CHANNELS = 2;
     this.SAMPLE_RATE = 48000;
 
+    this.loadModifiers();
+  }
+
+  async loadModifiers() {
     this.modifiers = {
-      cutoff: import('./modifiers/cutoff.js').njs,
-      duration: import('./modifiers/duration.js').njs,
-      echo: import('./modifiers/echo.js').njs,
-      highpass: import('./modifiers/highpass.js').njs,
-      lfopitch: import('./modifiers/lfopitch.js').njs,
-      lfovolume: import('./modifiers/lfovolume.js').njs,
-      lowpass: import('./modifiers/lowpass.js').njs,
-      pitch: import('./modifiers/pitch.js').njs,
-      repeat: import('./modifiers/repeat.js').njs,
-      startpos: import('./modifiers/startpos.js').njs,
-      volume: import('./modifiers/volume.js').njs
+      cutoff: (await import('./modifiers/cutoff.js')).njs,
+      duration: (await import('./modifiers/duration.js')).njs,
+      echo: (await import('./modifiers/echo.js')).njs,
+      highpass: (await import('./modifiers/highpass.js')).njs,
+      lfopitch: (await import('./modifiers/lfopitch.js')).njs,
+      lfovolume: (await import('./modifiers/lfovolume.js')).njs,
+      lowpass: (await import('./modifiers/lowpass.js')).njs,
+      pitch: (await import('./modifiers/pitch.js')).njs,
+      repeat: (await import('./modifiers/repeat.js')).njs,
+      startpos: (await import('./modifiers/startpos.js')).njs,
+      volume: (await import('./modifiers/volume.js')).njs
     };
   }
 

@@ -9,3 +9,19 @@ export function njs([ pitch ], delay) {
     delay: delay / pitch
   };
 }
+
+export async function browser([ pitch ], delay, _, input) {
+  pitch = Number(pitch);
+  if (isNaN(pitch) || !isFinite(pitch))
+    pitch = 1;
+  if (pitch === 0) return {};
+  if (pitch < 0) input.buffer.reverse();
+  console.log(pitch, input)
+
+  input.playbackRate.value *= pitch;
+
+  return {
+    delay: delay / pitch,
+    node: input
+  };
+}
