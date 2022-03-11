@@ -33,11 +33,28 @@ export default class AudioBrowser {
     return await this.audioCtx.decodeAudioData(arrayBuffer);
   }
 
+  wait(delay) {
+    return new Promise(res =>
+      setTimeout(() => res(), delay)
+    );
+  }
+
   async run(script) {
     const timeline = this.scriptToTimeline(script);
-    let inputs = await Promise.all(
+    const inputs = await Promise.all(
       timeline.map(({ link }) => this.get(link))
     );
-    console.log(inputs);
+    let duration = inputs.map(({ duration }) => duration);
+
+    for (const input of inputs) {
+      if (this.audioCtx.state === 'suspended')
+        this.audioCtx.resume();
+      const trackSrc = this.audioCtx.createBufferSource();
+      trackSrc.buffer = input;
+      trackSrc.connect(this.audioCtx.destination);
+
+      trackSrc.start();
+      await this.wait(input.duration * 1000);
+    }
   }
 }
