@@ -21,7 +21,7 @@ input[type="text"] {
 }
 
 input[type="text"]:hover {
-  background: #e7e7e7;
+  background: #e0e0e0;
 }
 
 input[type="text"]:focus {
@@ -30,14 +30,15 @@ input[type="text"]:focus {
 
 .output {
   font-family: monospace;
-  max-height: 50%;
+  max-height: 50vh;
   overflow: auto;
+  border-radius: 5px;
 }
 
 .output span {
   display: block;
   padding: 8px;
-  background: #dbdbdb;
+  background: #cfcfcf;
   white-space: pre-wrap;
 }
 

@@ -10,7 +10,7 @@ export function njs([ pitch ], delay) {
   };
 }
 
-export async function browser([ pitch ], delay, _, input) {
+export function browser([ pitch ], delay, _, input) {
   pitch = Number(pitch);
   if (isNaN(pitch) || !isFinite(pitch))
     pitch = 1;
