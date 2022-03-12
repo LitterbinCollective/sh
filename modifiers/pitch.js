@@ -16,7 +16,7 @@ export async function browser([ pitch ], delay, _, input) {
     pitch = 1;
   if (pitch === 0) return {};
   if (pitch < 0) input.buffer.reverse();
-  console.log(pitch, input)
+  console.log(pitch, input);
 
   input.playbackRate.value *= pitch;
 
