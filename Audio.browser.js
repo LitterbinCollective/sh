@@ -10,7 +10,7 @@ export default class AudioBrowser {
     this.modifiers = {
       cutoff: (await import('./modifiers/cutoff.js')).browser,
       duration: (await import('./modifiers/duration.js')).browser,
-      // echo
+      echo: (await import('./modifiers/echo.js')).browser,
       highpass: (await import('./modifiers/highpass.js')).browser,
       // lfopitch
       // lfovolume
