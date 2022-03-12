@@ -11,7 +11,8 @@ export default class AudioBrowser {
       cutoff: (await import('./modifiers/cutoff.js')).browser,
       duration: (await import('./modifiers/duration.js')).browser,
       pitch: (await import('./modifiers/pitch.js')).browser,
-      startpos: (await import('./modifiers/startpos.js')).browser
+      startpos: (await import('./modifiers/startpos.js')).browser,
+      volume: (await import('./modifiers/volume.js')).browser
     }
   }
 
@@ -54,6 +55,7 @@ export default class AudioBrowser {
     if (this.audioCtx.state === 'suspended')
       this.audioCtx.resume();
     const timeline = this.scriptToTimeline(script);
+
     const inputs = await Promise.all(
       timeline.map(async ({ link }) => {
         const trackSrc = this.audioCtx.createBufferSource();
@@ -61,10 +63,10 @@ export default class AudioBrowser {
         return trackSrc;
       })
     );
-
     let duration = inputs.map(({ buffer }) => buffer.duration * 1000);
     let ends = duration;
     let offsets = inputs.map(() => 0);
+    let nodes = [];
 
     for (let i = 0; i < inputs.length; i++) {
       const time = timeline[i];
@@ -73,12 +75,18 @@ export default class AudioBrowser {
         const modifier = this.modifiers[mod];
         if (!modifier) continue;
 
-        const { delay, end, offset, node } = await modifier(args, duration[i], offsets[i], finalInput, this.audioCtx);
-        console.log(mod, args, delay, end, offset, node);
+        const { delay, end, offset, node, insert } = await modifier(args, duration[i], offsets[i], finalInput, this.audioCtx);
+        console.log('mod:', mod, args, delay, end, offset, node);
         if (node) finalInput = node;
         if (offset) offsets[i] = offset;
         if (end) ends[i] = end;
         if (delay) duration[i] = delay;
+        if (insert) {
+          if (!nodes[i])
+            nodes[i] = [];
+          console.log('inserting node');
+          nodes[i].push(insert);
+        }
       }
       inputs[i] = finalInput;
     }
@@ -86,7 +94,15 @@ export default class AudioBrowser {
     for (let i = 0; i < inputs.length; i++) {
       const input = inputs[i];
       const time = duration[i];
-      input.connect(this.audioCtx.destination);
+
+      let lastNode = input;
+      if (nodes[i])
+        for (const node of nodes[i]) {
+          console.log(lastNode, '=>', node);
+          lastNode.connect(node);
+          lastNode = node;
+        }
+      lastNode.connect(this.audioCtx.destination);
 
       input.start(0, offsets[i] / 1000, ends[i] / 1000);
       await this.wait(time);
