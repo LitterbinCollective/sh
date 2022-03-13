@@ -2,7 +2,7 @@ function clamp (n, min, max) {
   return Math.min(Math.max(n, min), max);
 }
 
-export function njs(args) {
+module.exports.njs = function (args) {
   const defaults = [ 5, 1 ];
   for (let a = 0; a < 2; a++) {
     const x = args[a];

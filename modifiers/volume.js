@@ -1,4 +1,4 @@
-export function njs([ percent ]) {
+module.exports.njs = function ([ percent ]) {
   percent = Number(percent);
   if (isNaN(percent) || !isFinite(percent))
     percent = 1;
@@ -8,7 +8,7 @@ export function njs([ percent ]) {
   }
 }
 
-export function browser([ percent ], _, __, ___, ctx) {
+module.exports.browser = function ([ percent ], _, __, ___, ctx) {
   percent = Number(percent);
   if (isNaN(percent) || !isFinite(percent))
     percent = 1;

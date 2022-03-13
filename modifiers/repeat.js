@@ -1,4 +1,4 @@
-export function njs([ num ], delay) {
+module.exports.njs = function ([ num ], delay) {
   num = Number(num);
   if (isNaN(num) || !isFinite(num) || num <= 0)
     num = 1;
@@ -8,7 +8,7 @@ export function njs([ num ], delay) {
   };
 }
 
-export async function browser([ num ], delay, offset, input, ctx) {
+module.exports.browser = async function ([ num ], delay, offset, input, ctx) {
   num = Number(num);
   if (isNaN(num) || !isFinite(num) || num <= 0)
     num = 1;

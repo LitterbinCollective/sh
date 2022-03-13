@@ -1,4 +1,4 @@
-export function njs([ factor ]) {
+module.exports.njs = function ([ factor ]) {
   factor = Number(factor);
   if (isNaN(factor) || !isFinite(factor))
     factor = 1;
@@ -8,7 +8,7 @@ export function njs([ factor ]) {
   };
 }
 
-export function browser([ factor ], _, __, ___, ctx) {
+module.exports.browser = function ([ factor ], _, __, ___, ctx) {
   factor = Number(factor);
   if (isNaN(factor) || !isFinite(factor))
     factor = 1;
