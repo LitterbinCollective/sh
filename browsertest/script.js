@@ -12,6 +12,7 @@
     const span = document.createElement('span');
     span.innerText = what;
     output.append(span);
+    output.scrollTop = output.scrollHeight;
   }
 
   const _console_log = window.console.log;
