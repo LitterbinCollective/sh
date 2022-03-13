@@ -58,7 +58,7 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
 
     delayFactor++;
     const delay_ = args[0] * delayFactor * 1000;
-    if (delay_ > 90000) break;
+    if (delay_ > 90000 || delays.length >= 128) break;
 
     delays.push(delay_);
     decays.push(i);
