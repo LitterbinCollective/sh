@@ -1,4 +1,4 @@
-export default class Parser {
+module.exports = class Parser {
   constructor(shat) {
     this.shat = shat;
 

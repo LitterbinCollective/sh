@@ -2,7 +2,7 @@ function clamp (n, min, max) {
   return Math.min(Math.max(n, min), max);
 }
 
-export function njs([ percent ], delay) {
+module.exports.njs = function ([ percent ], delay) {
   percent = Number(percent);
   if (isNaN(percent) || !isFinite(percent))
     percent = 0;
@@ -15,7 +15,7 @@ export function njs([ percent ], delay) {
   };
 }
 
-export function browser([ percent ], delay) {
+module.exports.browser = function ([ percent ], delay) {
   percent = Number(percent);
   if (isNaN(percent) || !isFinite(percent))
     percent = 0;

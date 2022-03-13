@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import Sh from './index.js';
+const { readFileSync } = require('fs');
+const Sh = require('./index.js');
 
 const sh = new Sh(JSON.parse(readFileSync('./shat.json')));
 

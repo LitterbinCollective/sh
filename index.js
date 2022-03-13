@@ -1,7 +1,7 @@
-import Audio from './Audio.njs.js';
-import Parser from './Parser.js';
+const Audio = require('./Audio.njs.js');
+const Parser = require('./Parser.js');
 
-export default class Sh {
+module.exports = class Sh {
   constructor (list) {
     this.Audio = new Audio();
     this.Parser = new Parser(list);

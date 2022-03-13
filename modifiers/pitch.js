@@ -1,4 +1,4 @@
-export function njs([ pitch ], delay) {
+module.exports.njs = function ([ pitch ], delay) {
   pitch = Number(pitch);
   if (isNaN(pitch) || !isFinite(pitch))
     pitch = 1;
@@ -10,7 +10,7 @@ export function njs([ pitch ], delay) {
   };
 }
 
-export function browser([ pitch ], delay, _, input) {
+module.exports.browser = function ([ pitch ], delay, _, input) {
   pitch = Number(pitch);
   if (isNaN(pitch) || !isFinite(pitch))
     pitch = 1;

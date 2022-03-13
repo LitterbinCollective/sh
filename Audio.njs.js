@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { spawn } from 'child_process';
-import fs from 'fs';
+const axios = require('axios');
+const { spawn } = require('child_process');
+const fs = require('fs');
 
-export default class Audio {
+module.exports = class Audio {
   constructor () {
     this.AUDIO_CHANNELS = 2;
     this.SAMPLE_RATE = 48000;

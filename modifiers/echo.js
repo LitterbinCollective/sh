@@ -1,4 +1,4 @@
-export function njs(args, delay) {
+module.exports.njs = function (args, delay) {
   const defaults = [ 0.25, 0.5 ];
   for (let a = 0; a < 2; a++) {
     const x = args[a];
@@ -34,7 +34,7 @@ export function njs(args, delay) {
   };
 }
 
-export async function browser(args, delay, offset, input, ctx) {
+module.exports.browser = async function (args, delay, offset, input, ctx) {
   const defaults = [ 0.25, 0.5 ];
   for (let a = 0; a < 2; a++) {
     const x = args[a];
