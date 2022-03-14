@@ -22,3 +22,64 @@ module.exports.njs = function (args) {
     delay: false
   };
 }
+
+function createVibrato (audioContext, effect, freq, amount, swag) {
+  const delayNode = audioContext.createDelay();
+  delayNode.delayTime.value = .01;
+  const inputNode = audioContext.createGain();
+  const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  gain.gain.value = amount / 100;
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  osc.connect(gain);
+  gain.connect(delayNode.delayTime);
+  inputNode.connect(delayNode);
+  delayNode.connect(effect);
+  swag ? osc.start(0, 46, 14) : osc.start(0);
+  return inputNode;
+}
+
+module.exports.browser = async function (args, delay, offset, input, ctx) {
+  const defaults = [ 5, 0.1 ];
+  for (let a = 0; a < 2; a++) {
+    const x = args[a];
+    const num = Number(x);
+
+    if (num === null || num === undefined || isNaN(num) || !isFinite(num)) {
+      args[a] = defaults[a];
+      continue;
+    }
+
+    args[a] = num;
+  }
+
+  const scriptNode = ctx.createScriptProcessor(4096, 2, 2);
+
+  let pos = 0;
+  scriptNode.onaudioprocess = function(audioProcessingEvent) {
+    const inputBuffer = audioProcessingEvent.inputBuffer;
+    const outputBuffer = audioProcessingEvent.outputBuffer;
+
+    const bufferLeft = inputBuffer.getChannelData(0);
+    const bufferRight = inputBuffer.getChannelData(1);
+    const outLeft = outputBuffer.getChannelData(0);
+    const outRight = outputBuffer.getChannelData(1);
+
+    for (let sample = 0; sample < inputBuffer.length; sample++) {
+      const index = (pos >> 0) % inputBuffer.length;
+      outLeft[sample] += bufferLeft[index];
+      outRight[sample] += bufferRight[index];
+
+      let speed = 1;
+      speed -=
+        Math.sin(
+          pos / ctx.sampleRate * 10 * args[0]
+        ) * args[1];
+      speed += Math.pow(args[1] * 0.5, 2);
+      pos += speed;
+    }
+  }
+
+  return { insert: scriptNode };
+}

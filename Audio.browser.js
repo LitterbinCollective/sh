@@ -12,7 +12,7 @@ export default class AudioBrowser {
       duration: (await import('./modifiers/duration.js')).browser,
       echo: (await import('./modifiers/echo.js')).browser,
       highpass: (await import('./modifiers/highpass.js')).browser,
-      // lfopitch
+      lfopitch: (await import('./modifiers/lfopitch.js')).browser,
       // lfovolume
       lowpass: (await import('./modifiers/lowpass.js')).browser,
       pitch: (await import('./modifiers/pitch.js')).browser,
@@ -81,8 +81,10 @@ export default class AudioBrowser {
         const modifier = this.modifiers[mod];
         if (!modifier) continue;
 
+        const start = Date.now();
         const { delay, end, offset, node, insert } = await modifier(args, duration[i], offsets[i], finalInput, this.audioCtx);
-        console.log('mod:', mod, args, delay, end, offset, node);
+        console.log('mod stopped running, took: ' + (Date.now() - start) + 'ms');
+        console.log('mod returned:', mod, args, delay, end, offset, node);
         if (node) finalInput = node;
         if (offset) offsets[i] = offset;
         if (end) ends[i] = end;
@@ -105,7 +107,7 @@ export default class AudioBrowser {
       if (nodes[i])
         for (const node of nodes[i]) {
           console.log(lastNode, '=>', node);
-          lastNode.connect(node);
+          lastNode.connect(node.inputNode ? node.inputNode : node);
           lastNode = node;
         }
       lastNode.connect(this.audioCtx.destination);
