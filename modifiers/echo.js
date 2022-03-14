@@ -48,60 +48,36 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
     args[a] = num;
   }
 
-  const delays = [];
-  const decays = [];
+  args[0] = Math.ceil(args[0] * ctx.sampleRate);
 
-  const decayFactor = 1 - args[1]
-  let delayFactor = 0
-  for (let i = 1 - decayFactor; i > 0; i -= decayFactor) {
-    if (Math.floor(i * 100) / 100 == 0) break;
+  let size = 1;
+  while ((size <<= 1) < args[0]);
+  const echo_buffer = ctx.createBuffer(2, size, ctx.sampleRate);
 
-    delayFactor++;
-    const delay_ = args[0] * delayFactor * 1000;
-    if (delay_ > 90000 || delays.length >= 128) break;
+  const scriptNode = ctx.createScriptProcessor(4096, 2, 2);
 
-    delays.push(delay_);
-    decays.push(i);
+  let pos = 0;
+  scriptNode.onaudioprocess = function(audioProcessingEvent) {
+    const inputBuffer = audioProcessingEvent.inputBuffer;
+    const outputBuffer = audioProcessingEvent.outputBuffer;
+
+    const echol = echo_buffer.getChannelData(0);
+    const echor = echo_buffer.getChannelData(1);
+
+    const bufferLeft = inputBuffer.getChannelData(0);
+    const bufferRight = inputBuffer.getChannelData(1);
+    const outLeft = outputBuffer.getChannelData(0);
+    const outRight = outputBuffer.getChannelData(1);
+
+    for (let sample = 0; sample < inputBuffer.length; sample++) {
+      const echo_index = (pos >> 0) % args[0];
+      echol[echo_index] = echol[echo_index] * args[1] + bufferLeft[sample];
+      echor[echo_index] = echor[echo_index] * args[1] + bufferRight[sample];
+      outLeft[sample] += echol[echo_index];
+      outRight[sample] += echor[echo_index];
+      pos++;
+    }
   }
 
-  const offlineCtx = new OfflineAudioContext(
-    2,
-    ctx.sampleRate * (delays[delays.length - 1] + delay) / 1000,
-    ctx.sampleRate
-  );
-
-  const firstInput = offlineCtx.createBufferSource(0, offset / 1000, (delay + offset) / 1000);
-  firstInput.buffer = input.buffer;
-  firstInput.loop = input.loop;
-  firstInput.loopStart = input.loopStart;
-  firstInput.connect(offlineCtx.destination);
-  firstInput.start(0, offset / 1000, delay / 1000);
-
-  for (let v = 0; v < delays.length; v++) {
-    const i = decays[v];
-    const delay_ = delays[v];
-    const input_ = offlineCtx.createBufferSource(0, offset / 1000, (delay + offset) / 1000);
-    input_.buffer = input.buffer;
-    input_.loop = input.loop;
-    input_.loopStart = input.loopStart;
-
-    const gainNode = offlineCtx.createGain();
-    gainNode.gain.value = i;
-    console.log(delay_, i);
-    input_.connect(gainNode);
-    gainNode.connect(offlineCtx.destination);
-    input_.start(delay_ / 1000, offset / 1000, delay / 1000);
-  }
-
-  const buffer = await offlineCtx.startRendering();
-  input = ctx.createBufferSource();
-  input.buffer = buffer;
-  offset = 0;
-
-  return {
-    node: input,
-    delay: delays[delays.length - 1] + delay,
-    end: delays[delays.length - 1] + delay,
-    offset
-  };
+  return { insert: scriptNode };
 }
