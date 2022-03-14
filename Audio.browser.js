@@ -106,7 +106,7 @@ export default class AudioBrowser {
       let lastNode = input;
       if (nodes[i])
         for (const node of nodes[i]) {
-          console.log(lastNode, '=>', node);
+          console.log(lastNode.constructor.name, '=>', node.constructor.name);
           lastNode.connect(node.inputNode ? node.inputNode : node);
           lastNode = node;
         }
@@ -114,6 +114,15 @@ export default class AudioBrowser {
 
       input.start(0, offsets[i] / 1000, ends[i] / 1000);
       await this.wait(time);
+
+      lastNode = input;
+      if (nodes[i])
+        for (const node of nodes[i]) {
+          console.log(lastNode.constructor.name, '=/>', node.constructor.name);
+          lastNode.disconnect(node.inputNode ? node.inputNode : node);
+          lastNode = node;
+        }
+      lastNode.disconnect(this.audioCtx.destination);
     }
   }
 }
