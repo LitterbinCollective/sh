@@ -35,12 +35,14 @@ module.exports.browser = function ([ pitch ], delay, _, input, ctx) {
     input.buffer = reverse;
     input.loop = true;
     input.loopEnd = lS;
+
+    pitch = Math.abs(pitch);
   }
 
-  input.playbackRate.value *= Math.abs(pitch);
+  input.playbackRate.value *= pitch;
 
   return {
-    delay: delay / Math.abs(pitch),
+    delay: delay / pitch,
     node: input
   };
 }
