@@ -48,10 +48,24 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
     args[a] = num;
   }
 
-  args[0] = Math.ceil(args[0] * ctx.sampleRate);
+  const offlineCtx = new OfflineAudioContext(2, ctx.sampleRate * delay / 1000, ctx.sampleRate);
+  const input_ = offlineCtx.createBufferSource(0, offset / 1000, (delay + offset) / 1000);
+  input_.buffer = input.buffer;
+  input_.loop = input.loop;
+  input_.loopStart = input.loopStart;
+  input_.connect(offlineCtx.destination);
+  input_.start(0, offset / 1000, delay / 1000);
+  offset = 0;
+
+  const buffer = await offlineCtx.startRendering();
+
+  input = ctx.createBufferSource();
+  input.buffer = buffer;
+
+  const samples = Math.ceil(args[0] * ctx.sampleRate);
 
   let size = 1;
-  while ((size <<= 1) < args[0]);
+  while ((size <<= 1) < samples);
   const echo_buffer = ctx.createBuffer(2, size, ctx.sampleRate);
 
   const scriptNode = ctx.createScriptProcessor(4096, 2, 2);
@@ -70,7 +84,7 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
     const outRight = outputBuffer.getChannelData(1);
 
     for (let sample = 0; sample < inputBuffer.length; sample++) {
-      const echo_index = (pos >> 0) % args[0];
+      const echo_index = (pos >> 0) % samples;
       echol[echo_index] = echol[echo_index] * args[1] + bufferLeft[sample];
       echor[echo_index] = echor[echo_index] * args[1] + bufferRight[sample];
       outLeft[sample] += echol[echo_index];
@@ -79,5 +93,23 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
     }
   }
 
-  return { insert: scriptNode };
+  const decayFactor = 1 - args[1];
+  let newDelay = 0;
+  let delayFactor = 0;
+  for (let i = 1 - decayFactor; i > 0; i -= decayFactor) {
+    if (Math.floor(i * 100) / 100 == 0) break;
+
+    delayFactor++;
+    const delay_ = args[0] * delayFactor * 1000;
+    if (delay_ > 90000) break;
+
+    newDelay = delay_;
+  }
+
+  return {
+    insert: scriptNode,
+    delay: newDelay + delay,
+    end: newDelay + delay,
+    node: input
+  };
 }
