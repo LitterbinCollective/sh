@@ -23,8 +23,10 @@
   }
 
   i.addEventListener('keyup', async function (event) {
-    if (!window.sh)
+    if (!window.sh) {
       window.sh = new Sh(await shat.json());
+      console.log('======== READY ========');
+    }
 
     if (event.key === 'Enter') {
       const input = event.target.value;

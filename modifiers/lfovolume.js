@@ -40,6 +40,7 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
   const scriptNode = ctx.createScriptProcessor(4096, 2, 2);
 
   let pos = 0;
+  const MAX = 1;
   scriptNode.onaudioprocess = function(audioProcessingEvent) {
     const inputBuffer = audioProcessingEvent.inputBuffer;
     const outputBuffer = audioProcessingEvent.outputBuffer;
@@ -56,7 +57,15 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
       ) * args[1];
       outLeft[sample] += bufferLeft[index] * vol;
       outRight[sample] += bufferRight[index] * vol;
-      pos++;
+
+      pos += input.playbackRate.value;
+
+      outLeft[sample] = clamp(outLeft[sample], -MAX, MAX);
+      outRight[sample] = clamp(outRight[sample], -MAX, MAX);
+      if (!isFinite(outLeft[sample]))
+        outLeft[sample] = 0;
+      if (!isFinite(outRight[sample]))
+        outRight[sample] = 0;
     }
   }
 
