@@ -10,6 +10,12 @@ window.Sh = class Sh {
   constructor (list) {
     this.Audio = new AudioBrowser();
     this.Parser = new Parser(list);
+
+    console.log(
+      '%csh',
+      'background:#BD2626;color:white;padding:2px 4px;border-radius:2px;',
+      'hoi!!'
+    );
   }
 }
 
