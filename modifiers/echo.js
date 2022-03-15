@@ -1,3 +1,7 @@
+function clamp (n, min, max) {
+  return Math.min(Math.max(n, min), max);
+}
+
 module.exports.njs = function (args, delay) {
   const defaults = [ 0.25, 0.5 ];
   for (let a = 0; a < 2; a++) {
@@ -59,8 +63,10 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
 
   const buffer = await offlineCtx.startRendering();
 
+  const previousInputPlaybackValue = input.playbackRate.value;
   input = ctx.createBufferSource();
   input.buffer = buffer;
+  input.playbackRate.value = previousInputPlaybackValue;
 
   const samples = Math.ceil(args[0] * ctx.sampleRate);
 
@@ -71,6 +77,7 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
   const scriptNode = ctx.createScriptProcessor(4096, 2, 2);
 
   let pos = 0;
+  const MAX = 1;
   scriptNode.onaudioprocess = function(audioProcessingEvent) {
     const inputBuffer = audioProcessingEvent.inputBuffer;
     const outputBuffer = audioProcessingEvent.outputBuffer;
@@ -89,14 +96,22 @@ module.exports.browser = async function (args, delay, offset, input, ctx) {
       echor[echo_index] = echor[echo_index] * args[1] + bufferRight[sample];
       outLeft[sample] += echol[echo_index];
       outRight[sample] += echor[echo_index];
-      pos++;
+
+      pos += input.playbackRate.value;
+
+      outLeft[sample] = clamp(outLeft[sample], -MAX, MAX);
+      outRight[sample] = clamp(outRight[sample], -MAX, MAX);
+      if (!isFinite(outLeft[sample]))
+        outLeft[sample] = 0;
+      if (!isFinite(outRight[sample]))
+        outRight[sample] = 0;
     }
   }
 
   const decayFactor = 1 - args[1];
   let newDelay = 0;
   let delayFactor = 0;
-  for (let i = 1 - decayFactor; i > 0; i -= decayFactor) {
+  for (let i = 1; i > 0; i -= decayFactor) {
     if (Math.floor(i * 100) / 100 == 0) break;
 
     delayFactor++;

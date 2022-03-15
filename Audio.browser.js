@@ -118,7 +118,9 @@ export default class AudioBrowser {
           lastNode.connect(node.inputNode ? node.inputNode : node);
           lastNode = node;
         }
-      lastNode.connect(this.audioCtx.destination);
+      const compressor = this.audioCtx.createDynamicsCompressor();
+      lastNode.connect(compressor);
+      compressor.connect(this.audioCtx.destination)
 
       input.start(0, offsets[i] / 1000, ends[i] / 1000);
       await this.wait(time);
@@ -130,7 +132,8 @@ export default class AudioBrowser {
           lastNode.disconnect(node.inputNode ? node.inputNode : node);
           lastNode = node;
         }
-      lastNode.disconnect(this.audioCtx.destination);
+      lastNode.disconnect(compressor);
+      compressor.disconnect(this.audioCtx.destination)
     }
   }
 }
