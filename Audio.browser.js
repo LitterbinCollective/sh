@@ -57,6 +57,14 @@ export default class AudioBrowser {
     );
   }
 
+  log(...args) {
+    console.log(
+      '%csh',
+      'background:#BD2626;color:white;padding:2px 4px;border-radius:2px;',
+      ...args
+    );
+  }
+
   async run(script) {
     if (this.audioCtx.state === 'suspended')
       this.audioCtx.resume();
@@ -83,8 +91,8 @@ export default class AudioBrowser {
 
         const start = Date.now();
         const { delay, end, offset, node, insert } = await modifier(args, duration[i], offsets[i], finalInput, this.audioCtx);
-        console.log('mod stopped running, took: ' + (Date.now() - start) + 'ms');
-        console.log('mod returned:', mod, args, delay, end, offset, node);
+        this.log(mod + ' mod stopped running, took: ' + (Date.now() - start) + 'ms');
+        this.log(mod + ' mod returned:', mod, args, delay, end, offset, node);
         if (node) finalInput = node;
         if (offset) offsets[i] = offset;
         if (end) ends[i] = end;
@@ -92,7 +100,7 @@ export default class AudioBrowser {
         if (insert) {
           if (!nodes[i])
             nodes[i] = [];
-          console.log('inserting node');
+          this.log('inserting the returned node');
           nodes[i].push(insert);
         }
       }
@@ -106,7 +114,7 @@ export default class AudioBrowser {
       let lastNode = input;
       if (nodes[i])
         for (const node of nodes[i]) {
-          console.log(lastNode.constructor.name, '=>', node.constructor.name);
+          this.log(lastNode.constructor.name, '==>', node.constructor.name);
           lastNode.connect(node.inputNode ? node.inputNode : node);
           lastNode = node;
         }
@@ -118,7 +126,7 @@ export default class AudioBrowser {
       lastNode = input;
       if (nodes[i])
         for (const node of nodes[i]) {
-          console.log(lastNode.constructor.name, '=/>', node.constructor.name);
+          this.log(lastNode.constructor.name, '=/>', node.constructor.name);
           lastNode.disconnect(node.inputNode ? node.inputNode : node);
           lastNode = node;
         }
