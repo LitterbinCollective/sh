@@ -177,7 +177,7 @@ module.exports = class Parser {
         else {
           prev = next;
           next = next[wordData];
-          if (next[word.words[k + 1]] === undefined) {
+          if (next[String(word.words[k + 1]).split('#')[0]] === undefined) {
             if (!next._SD)
               next = prev;
             else
