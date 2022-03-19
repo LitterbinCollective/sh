@@ -149,7 +149,7 @@ module.exports = class Audio {
 
     filter.push(
       named.reduce((pV, cV) => pV += `[${cV}]`, '') +
-      `amix=inputs=${inputs.length / 8}:dropout_transition=0[outa]`
+      `amix=inputs=${inputs.length / 8}:dropout_transition=0:normalize=0[outa]`
     )
 
     let args = [
