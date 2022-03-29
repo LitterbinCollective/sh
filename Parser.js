@@ -155,6 +155,7 @@ module.exports = class Parser {
         let wordData = word.words[k];
         let realm = -1;
         let restart = false;
+        let additional = null;
 
         if (typeof wordData === 'object') {
           newWords.push({
@@ -178,10 +179,19 @@ module.exports = class Parser {
           prev = next;
           next = next[wordData];
           if (next[String(word.words[k + 1]).split('#')[0]] === undefined) {
-            if (!next._SD)
+            if (!next._SD) {
               next = prev;
-            else
-              iterations = 0;
+
+              const sound = this.tree[wordData]
+              if (sound._SD) {
+                if (realm === -1)
+                  realm = 1 + Math.floor(Math.random() * (sound._SD.length - 1))
+                additional = sound._SD[realm - 1];
+              }
+
+              realm = -1;
+            }
+            iterations = 0;
             restart = true;
           }
         }
@@ -189,10 +199,13 @@ module.exports = class Parser {
         if ((k === word.words.length - 1 || restart) && next._SD) {
           for (let iter = 0; iter <= iterations; iter++) {
             let choose = 1 + Math.floor(Math.random() * (next._SD.length - 1))
-            if (iter === iterations - 1 && realm !== -1)
+            if (iter === iterations && realm !== -1)
               choose = realm;
             newWords.push(next._SD[choose - 1]);
           }
+
+          if (additional)
+            newWords.push(additional);
 
           next = this.tree;
           prev = this.tree;
