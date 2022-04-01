@@ -23,23 +23,6 @@ module.exports.njs = function (args) {
   };
 }
 
-function createVibrato (audioContext, effect, freq, amount, swag) {
-  const delayNode = audioContext.createDelay();
-  delayNode.delayTime.value = .01;
-  const inputNode = audioContext.createGain();
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  gain.gain.value = amount / 100;
-  osc.type = 'sine';
-  osc.frequency.value = freq;
-  osc.connect(gain);
-  gain.connect(delayNode.delayTime);
-  inputNode.connect(delayNode);
-  delayNode.connect(effect);
-  swag ? osc.start(0, 46, 14) : osc.start(0);
-  return inputNode;
-}
-
 module.exports.browser = async function (args, delay, offset, input, ctx) {
   const defaults = [ 5, 0.1 ];
   for (let a = 0; a < 2; a++) {
