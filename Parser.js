@@ -186,7 +186,7 @@ module.exports = class Parser {
               if (sound._SD) {
                 if (realm === -1)
                   realm = 1 + Math.floor(Math.random() * (sound._SD.length - 1))
-                additional = sound._SD[realm - 1];
+                additional = sound._SD[sound._SD.length - realm - 2];
               }
 
               realm = -1;
@@ -201,7 +201,7 @@ module.exports = class Parser {
             let choose = 1 + Math.floor(Math.random() * (next._SD.length - 1))
             if (iter === iterations && realm !== -1)
               choose = realm;
-            newWords.push(next._SD[choose - 1]);
+            newWords.push(next._SD[sound._SD.length - choose - 2]);
           }
 
           if (additional)
