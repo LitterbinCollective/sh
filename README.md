@@ -1,4 +1,4 @@
-# sh <img align="right" width="100" src="https://litterbin.dev/sh.png">
+# sh <img align="right" width="100" src="https://litterbin.dev/media/sh.png">
 A chatsound processor written in JS.
 
 ## Installation
