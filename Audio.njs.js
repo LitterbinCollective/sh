@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 
 module.exports = class Audio {
-  constructor () {
+  constructor() {
     this.AUDIO_CHANNELS = 2;
     this.SAMPLE_RATE = 48000;
 
@@ -22,37 +22,42 @@ module.exports = class Audio {
       pitch: (await import('./modifiers/pitch.js')).njs,
       repeat: (await import('./modifiers/repeat.js')).njs,
       startpos: (await import('./modifiers/startpos.js')).njs,
-      volume: (await import('./modifiers/volume.js')).njs
+      volume: (await import('./modifiers/volume.js')).njs,
     };
   }
 
+  modifierOrder = ['duration', 'repeat'];
+
   scriptToTimeline(script) {
     const timeline = [];
-    const parseWord = function(word, mods) {
+    const parseWord = (word, mods = []) => {
+      mods = [...word.mods, ...mods].sort((a, b) => {
+        return this.modifierOrder.indexOf(a.mod) - this.modifierOrder.indexOf(b.mod);
+      });
+
       for (const wordOrLink of word.words) {
         switch (typeof wordOrLink) {
           case 'string':
             timeline.push({
               link: wordOrLink,
-              mods: word.mods.concat(mods || [])
+              mods,
             });
             break;
           case 'object':
-            parseWord(wordOrLink, word.mods.concat(mods || []));
+            parseWord(wordOrLink, mods);
             break;
         }
       }
     };
 
-    for (let i = 0; i < script.length; i++)
-      parseWord(script[i]);
+    for (let i = 0; i < script.length; i++) parseWord(script[i]);
     return timeline;
   }
 
   get(url) {
     url = new URL(url);
 
-    switch (url.protocol.slice(0,4)) {
+    switch (url.protocol.slice(0, 4)) {
       case 'file':
         return url.pathname;
       case 'http':
@@ -64,7 +69,7 @@ module.exports = class Audio {
           const { data } = await axios({
             method: 'get',
             url: url.toString(),
-            responseType: 'stream'
+            responseType: 'stream',
           });
 
           const child = spawn('ffmpeg', [
@@ -77,13 +82,14 @@ module.exports = class Audio {
           data.pipe(child.stdin);
 
           const buffers = [];
-          child.stdout.on('data', (data) =>
-            buffers.push(data)
-          );
+          child.stdout.on('data', (data) => buffers.push(data));
 
           child.stdout.on('end', () => {
             if (!fs.existsSync('cache/')) fs.mkdirSync('cache/');
-            fs.writeFileSync('cache/' + fileName + '.raw', Buffer.concat(buffers));
+            fs.writeFileSync(
+              'cache/' + fileName + '.raw',
+              Buffer.concat(buffers)
+            );
             res('cache/' + fileName + '.raw');
           });
         });
@@ -114,7 +120,7 @@ module.exports = class Audio {
         ];
       })
     );
-    inputs = inputs.reduce((pV, cV) => pV.concat(cV), []);
+    inputs = inputs.flat();
 
     for (const time of timeline) {
       named.push(named.length + ':a');
@@ -125,16 +131,18 @@ module.exports = class Audio {
         const returned = modifier(args, delays[named.length - 1]);
 
         if (returned.filter)
-          filter.push(returned.filter.replace(/{(\d+)}/g, (_match, number) => {
-            let name = names[number];
-            if (!name)
-              name = Math.random().toString(16).substring(2, NAME_LENGTH),
-              names.push(name);
-            return name;
-          }));
+          filter.push(
+            returned.filter.replace(/{(\d+)}/g, (_match, number) => {
+              let name = names[number];
+              if (!name) {
+                name = Math.random().toString(16).substring(2, NAME_LENGTH);
+                names.push(name);
+              }
+              return name;
+            })
+          );
 
-        if (returned.delay)
-          delays[named.length - 1] = returned.delay;
+        if (returned.delay) delays[named.length - 1] = returned.delay;
         named[named.length - 1] = names[names.length - 1];
       }
     }
@@ -148,9 +156,11 @@ module.exports = class Audio {
     }
 
     filter.push(
-      named.reduce((pV, cV) => pV += `[${cV}]`, '') +
-      `amix=inputs=${inputs.length / 8}:dropout_transition=0,volume=volume=${inputs.length === 8 ? 1 : 1 - (1 / (inputs.length / 8))}[outa]`
-    )
+      named.reduce((pV, cV) => (pV += `[${cV}]`), '') +
+        `amix=inputs=${inputs.length / 8}:dropout_transition=0,volume=volume=${
+          inputs.length === 8 ? 1 : 1 - 1 / (inputs.length / 8)
+        }[outa]`
+    );
 
     let args = [
       '-map', '[outa]',
@@ -160,9 +170,10 @@ module.exports = class Audio {
       '-'
     ];
     args = inputs.concat('-filter_complex', filter.join(';'), args);
+    console.log(args);
 
     const child = spawn('ffmpeg', args);
     child.stderr.on('data', (buf) => console.log(buf.toString()));
     return child.stdout;
   }
-}
+};

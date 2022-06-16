@@ -1,19 +1,17 @@
-module.exports.njs = function ([ num ], delay) {
+module.exports.njs = function ([num], delay) {
   num = Number(num);
-  if (isNaN(num) || !isFinite(num) || num <= 0)
-    num = 1;
+  if (isNaN(num) || !isFinite(num) || num <= 0) num = 1;
   return {
-    filter: `[{0}]aloop=loop=${num - 1}:size=${(num - 1) * (48 * delay)}[{1}]`,
-    delay: num * delay
+    filter: `[{0}]aloop=loop=${num - 1}:size=${48 * delay}[{1}]`,
+    delay: num * delay,
   };
-}
+};
 
-module.exports.browser = async function ([ num ], delay, offset, input, ctx) {
+module.exports.browser = async function ([num], delay, offset, input, ctx) {
   num = Number(num);
-  if (isNaN(num) || !isFinite(num) || num <= 0)
-    num = 1;
+  if (isNaN(num) || !isFinite(num) || num <= 0) num = 1;
 
-  const offlineCtx = new OfflineAudioContext(2, ctx.sampleRate * delay / 1000, ctx.sampleRate);
+  const offlineCtx = new OfflineAudioContext(2, (ctx.sampleRate * delay) / 1000, ctx.sampleRate);
   const input_ = offlineCtx.createBufferSource(0, offset / 1000, (delay + offset) / 1000);
   input_.buffer = input.buffer;
   input_.loop = input.loop;
@@ -33,6 +31,6 @@ module.exports.browser = async function ([ num ], delay, offset, input, ctx) {
     node: input,
     delay,
     end: delay,
-    offset
+    offset,
   };
-}
+};
