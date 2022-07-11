@@ -16,16 +16,16 @@ module.exports.njs = function (args, delay) {
     args[a] = num;
   }
 
-  if (args[1] >= 1)
-    args[1] = 0.99;
-
   const delays = [];
   const decays = [];
 
-  const decayFactor = 1 - args[1]
-  let delayFactor = 0
+  const decayFactor = 1 - args[1];
+  let delayFactor = 0;
+
+  const MAXIMUM = 256;
+  let iterations = 0;
   for (let i = 1 - decayFactor; i > 0; i -= decayFactor) {
-    if (Math.floor(i * 100) / 100 == 0) break;
+    if (Math.floor(i * 100) / 100 == 0 || iterations >= MAXIMUM) break;
 
     delayFactor++;
     const delay = args[0] * delayFactor * 1000;
@@ -33,6 +33,7 @@ module.exports.njs = function (args, delay) {
 
     delays.push(delay);
     decays.push(i.toFixed(2));
+    iterations++;
   }
 
   return {
