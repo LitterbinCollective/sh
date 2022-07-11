@@ -16,6 +16,9 @@ module.exports.njs = function (args, delay) {
     args[a] = num;
   }
 
+  if (args[1] >= 1)
+    args[1] = 0.99;
+
   const delays = [];
   const decays = [];
 
