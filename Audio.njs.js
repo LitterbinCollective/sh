@@ -31,8 +31,17 @@ module.exports = class Audio {
   scriptToTimeline(script) {
     const timeline = [];
     const parseWord = (word, mods = []) => {
+      const STACK_MAX = 3;
+      let stackAmount = {};
+
       mods = [...word.mods, ...mods].sort((a, b) => {
         return this.modifierOrder.indexOf(a.mod) - this.modifierOrder.indexOf(b.mod);
+      }).filter(x => {
+        if (!stackAmount[x.mod])
+          stackAmount[x.mod] = 0;
+        stackAmount[x.mod]++;
+
+        return !(stackAmount[x.mod] && stackAmount[x.mod] >= STACK_MAX);
       });
 
       for (const wordOrLink of word.words) {
