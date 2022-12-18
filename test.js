@@ -1,7 +1,16 @@
 const { readFileSync } = require("fs");
 const Sh = require("./index.js");
 const { inspect } = require("util");
-const Speaker = require("speaker");
+let Speaker;
+
+try {
+  Speaker = require("speaker");
+  if (!Speaker)
+    throw new Error();
+} catch (err) {
+  console.log("no speaker, run npm install -g speaker");
+  process.exit(1);
+}
 
 const sh = new Sh(JSON.parse(readFileSync("./shat.json")));
 
