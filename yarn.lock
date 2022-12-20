@@ -2,6 +2,16 @@
 # yarn lockfile v1
 
 
+"@msgpack/msgpack@^2.8.0":
+  "integrity" "sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ=="
+  "resolved" "https://registry.npmjs.org/@msgpack/msgpack/-/msgpack-2.8.0.tgz"
+  "version" "2.8.0"
+
+"@types/node@^18.11.17":
+  "integrity" "sha512-HJSUJmni4BeDHhfzn6nF0sVmd1SMezP7/4F0Lq+aXzmp2xm9O7WXrUtHW/CHlYVtZUbByEvWidHqRtcJXGF2Ng=="
+  "resolved" "https://registry.npmjs.org/@types/node/-/node-18.11.17.tgz"
+  "version" "18.11.17"
+
 "axios@^0.26.0":
   "integrity" "sha512-lKoGLMYtHvFrPVt3r+RBMp9nh34N0M8zEfCWqdWZx6phynIEhQqAdydpyBAAG211zlhX9Rgu08cOamy6XjE5Og=="
   "resolved" "https://registry.npmjs.org/axios/-/axios-0.26.0.tgz"
@@ -9,38 +19,12 @@
   dependencies:
     "follow-redirects" "^1.14.8"
 
-"esbuild-windows-64@0.14.25":
-  "integrity" "sha512-TirEohRkfWU9hXLgoDxzhMQD1g8I2mOqvdQF2RS9E/wbkORTAqJHyh7wqGRCQAwNzdNXdg3JAyhQ9/177AadWA=="
-  "resolved" "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-0.14.25.tgz"
-  "version" "0.14.25"
-
-"esbuild@^0.14.25":
-  "integrity" "sha512-4JHEIOMNFvK09ziiL+iVmldIhLbn49V4NAVo888tcGFKedEZY/Y8YapfStJ6zSE23tzYPKxqKwQBnQoIO0BI/Q=="
-  "resolved" "https://registry.npmjs.org/esbuild/-/esbuild-0.14.25.tgz"
-  "version" "0.14.25"
-  optionalDependencies:
-    "esbuild-android-64" "0.14.25"
-    "esbuild-android-arm64" "0.14.25"
-    "esbuild-darwin-64" "0.14.25"
-    "esbuild-darwin-arm64" "0.14.25"
-    "esbuild-freebsd-64" "0.14.25"
-    "esbuild-freebsd-arm64" "0.14.25"
-    "esbuild-linux-32" "0.14.25"
-    "esbuild-linux-64" "0.14.25"
-    "esbuild-linux-arm" "0.14.25"
-    "esbuild-linux-arm64" "0.14.25"
-    "esbuild-linux-mips64le" "0.14.25"
-    "esbuild-linux-ppc64le" "0.14.25"
-    "esbuild-linux-riscv64" "0.14.25"
-    "esbuild-linux-s390x" "0.14.25"
-    "esbuild-netbsd-64" "0.14.25"
-    "esbuild-openbsd-64" "0.14.25"
-    "esbuild-sunos-64" "0.14.25"
-    "esbuild-windows-32" "0.14.25"
-    "esbuild-windows-64" "0.14.25"
-    "esbuild-windows-arm64" "0.14.25"
-
 "follow-redirects@^1.14.8":
   "integrity" "sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w=="
   "resolved" "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.14.9.tgz"
   "version" "1.14.9"
+
+"typescript@^4.9.4":
+  "integrity" "sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg=="
+  "resolved" "https://registry.npmjs.org/typescript/-/typescript-4.9.4.tgz"
+  "version" "4.9.4"
