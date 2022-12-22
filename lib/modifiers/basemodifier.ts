@@ -1,15 +1,23 @@
-export default class BaseModifier {
-  public legacyModifier: string | null = null;
+import { Chatsound } from '..';
 
-  public onLegacyModifierUsed(value: string): string {
+export default class BaseModifier {
+  public static defaultArguments = [];
+  public static legacyExpression: string | null = null;
+  private arguments: any[] = [];
+
+  constructor(args: string[]) {
+    this.arguments = args;
+  }
+
+  public static onLegacyExpressionUsed(value: string): string {
     return value;
   }
 
-  public convertValues(values: string[]): any[] {
-    return values;
+  public onSelection(index: number, matches: Chatsound[]) {
+    return { index, matches };
   }
 
-  public process(values: any[]): string | false {
+  public get filterTemplate(): string | false {
     return false;
   }
 };

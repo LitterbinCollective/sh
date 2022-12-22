@@ -1,8 +1,19 @@
 import axios from 'axios';
+import { Readable } from 'stream';
 import { decodeArrayStream } from '@msgpack/msgpack';
 
 import CacheManager from './cache';
+import {
+  REPEATED_SPACES_REGEX,
+  SCOPE_TYPE_SOUND,
+  TYPE_BUFFER,
+  TYPE_STREAM,
+  UNDERSCORE_DASH_REGEX
+} from './constants';
+import Context from './context';
 import { BaseModifier as basemodifier } from './modifiers';
+import Parser, { Scope } from './parser';
+
 export const BaseModifier = basemodifier;
 
 export interface Chatsound {
@@ -10,17 +21,15 @@ export interface Chatsound {
   realm: string
 };
 
-const UNDERSCORE_DASH_REGEX = /[_-]/g;
-const REPEATED_SPACES_REGEX = /\s+/g;
-
 export default class Chatsounds {
   public cache: CacheManager = new CacheManager('cache/');
   public list: Record<string, Record<string, Chatsound[]>> = {};
   public lookup: Record<string, Chatsound[]> = {};
-  public modifiers: Record<string, basemodifier> = {};
+  public parser: Parser = new Parser(this);
+  public modifiers: Record<string, typeof basemodifier> = {};
   private hashes: Record<string, string> = {};
 
-  public useModifiers(modifiers: Record<string, basemodifier>) {
+  public useModifiers(modifiers: Record<string, typeof basemodifier>) {
     for (const modifier in modifiers) {
       if (this.modifiers[modifier])
         continue;
@@ -69,13 +78,15 @@ export default class Chatsounds {
           .replaceAll(UNDERSCORE_DASH_REGEX, ' ')
           .replaceAll(REPEATED_SPACES_REGEX, ' ');
 
-        if (this.list[identifier][sound] === undefined)
-          this.list[identifier][sound] = [];
+        if (sound.length > 0) {
+          if (this.list[identifier][sound] === undefined)
+            this.list[identifier][sound] = [];
 
-        this.list[identifier][sound].push({
-          realm,
-          url: `https://raw.githubusercontent.com/${repository}/${branch}/${base}/${path}`
-        });
+          this.list[identifier][sound].push({
+            realm,
+            url: `https://raw.githubusercontent.com/${repository}/${branch}/${base}/${path}`
+          });
+        }
       }
 
       await this.cache.writeLocalList(hash, repository, branch, this.list[identifier]);
@@ -83,13 +94,66 @@ export default class Chatsounds {
     }
   }
 
+  public getRequiredSound(sound: Scope, last?: Chatsound) {
+    if (sound.type !== SCOPE_TYPE_SOUND)
+      return;
+
+    let matches = this.lookup[sound.text];
+    let index = Math.floor(Math.random() * matches.length);
+
+    let modified = false;
+    for (const modifier of sound.modifiers) {
+      if (!modifier.modifier)
+        continue;
+      const { index: i, matches: m } = modifier.modifier.onSelection(index, matches);
+
+      if (index !== i) {
+        index = i;
+        modified = true;
+      }
+
+      if (matches !== m) {
+        matches = m;
+        modified = true;
+      }
+    }
+
+    if (!modified && last !== undefined) {
+      let realmSpecific = [];
+
+      for (const sound of matches)
+        if (sound.realm === last.realm)
+          realmSpecific.push(sound);
+
+      if (realmSpecific.length > 0) {
+        matches = realmSpecific
+        index = Math.floor(Math.random() * matches.length);
+      }
+    }
+
+    if (index > matches.length - 1)
+      index = matches.length - 1;
+    if (index < 0)
+      index = 0;
+
+    return matches[index];
+  }
+
+  public newBuffer(input: string): Context<Buffer> {
+    return new Context<Buffer>(this, input, TYPE_BUFFER);
+  }
+
+  public newStream(input: string): Context<Readable> {
+    return new Context<Readable>(this, input, TYPE_STREAM);
+  }
+
   public mergeSources() {
     this.lookup = {
       sh: []
     };
 
-    for (const _ in this.list) {
-      const source = this.list[_];
+    for (const src in this.list) {
+      const source = this.list[src];
 
       for (const name in source) {
         const data = source[name];
@@ -97,8 +161,7 @@ export default class Chatsounds {
           this.lookup[name] = [];
 
         const urls: Record<string, true> = {};
-        for (const _ in data) {
-          const chatsound = data[_];
+        for (const chatsound of data) {
           if (urls[chatsound.url])
             continue;
 
