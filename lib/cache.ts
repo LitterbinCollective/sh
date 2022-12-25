@@ -10,7 +10,7 @@ const SOUNDS_CACHE_DIRECTORY = 'sounds/';
 const SOURCES_CACHE_DIRECTORY = 'sources/';
 
 interface CachedSource {
-  hash: string,
+  hash: string;
   sounds: Record<string, Chatsound[]>;
 }
 
@@ -27,21 +27,17 @@ export default class CacheManager {
       await promises.mkdir(this.directory);
       await promises.mkdir(join(this.directory, SOUNDS_CACHE_DIRECTORY));
       await promises.mkdir(join(this.directory, SOURCES_CACHE_DIRECTORY));
-    } catch(err) {}
+    } catch (err) {}
   }
 
   private getCachedSourceFilename(identifier: string) {
-    const filename = createHash('sha256')
-      .update(identifier)
-      .digest('hex');
-    return join(this.directory, SOURCES_CACHE_DIRECTORY, filename + '.json')
+    const filename = createHash('sha256').update(identifier).digest('hex');
+    return join(this.directory, SOURCES_CACHE_DIRECTORY, filename + '.json');
   }
 
   private getCachedSoundFilename(url: string) {
-    const filename = createHash('sha256')
-      .update(url)
-      .digest('hex');
-    return join(this.directory, SOUNDS_CACHE_DIRECTORY, filename + '.ogg')
+    const filename = createHash('sha256').update(url).digest('hex');
+    return join(this.directory, SOUNDS_CACHE_DIRECTORY, filename + '.ogg');
   }
 
   private get cachedDurationsFile() {
@@ -49,9 +45,8 @@ export default class CacheManager {
   }
 
   private get durations() {
-    if (this._durations)
-      return this._durations;
-    return this._durations = this.unserializeDurations();
+    if (this._durations) return this._durations;
+    return (this._durations = this.unserializeDurations());
   }
 
   private unserializeDurations() {
@@ -62,7 +57,7 @@ export default class CacheManager {
 
     let durations: Record<string, number> = {};
     for (const line of contents.toString().split('\n')) {
-      const [ path, duration ] = line.split('\0');
+      const [path, duration] = line.split('\0');
       durations[path] = +duration;
     }
 
@@ -70,14 +65,15 @@ export default class CacheManager {
   }
 
   public async getDuration(path: string): Promise<number> {
-    if (this.durations[path])
-      return this.durations[path];
+    if (this.durations[path]) return this.durations[path];
 
     const duration = await new Promise<number>(res => {
       const child = spawn('ffprobe', [
-        '-print_format', 'json',
-        '-show_entries', 'format=duration',
-        path
+        '-print_format',
+        'json',
+        '-show_entries',
+        'format=duration',
+        path,
       ]);
 
       let buffer = Buffer.alloc(0);
@@ -93,7 +89,10 @@ export default class CacheManager {
 
     // motherfucker
     (this.durations[path] as any) = duration;
-    await promises.appendFile(this.cachedDurationsFile, '\n' + path + '\0' + duration);
+    await promises.appendFile(
+      this.cachedDurationsFile,
+      '\n' + path + '\0' + duration
+    );
     return duration;
   }
 
@@ -117,7 +116,9 @@ export default class CacheManager {
 
     if (existsSync(path)) {
       try {
-        const data: CachedSource = JSON.parse((await promises.readFile(path)).toString());
+        const data: CachedSource = JSON.parse(
+          (await promises.readFile(path)).toString()
+        );
         return { sounds: data.sounds, use: data.hash === hash };
       } catch (err) {}
     }
@@ -125,12 +126,17 @@ export default class CacheManager {
     return { use: false };
   }
 
-  public async writeLocalList(hash: string, identifier: string, sounds: Record<string, Chatsound[]>) {
+  public async writeLocalList(
+    hash: string,
+    identifier: string,
+    sounds: Record<string, Chatsound[]>
+  ) {
     await this.createNeededDirectories();
 
     const path = this.getCachedSourceFilename(identifier);
-    await promises.writeFile(path, JSON.stringify(
-      { sounds, hash } as CachedSource
-    ));
+    await promises.writeFile(
+      path,
+      JSON.stringify({ sounds, hash } as CachedSource)
+    );
   }
 }

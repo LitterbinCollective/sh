@@ -1,7 +1,7 @@
 import BaseModifier from './basemodifier';
 
 export default class StartposModifier extends BaseModifier {
-  public static defaultArguments = [ '0' ];
+  public static defaultArguments = ['0'];
   public static legacyExpression = '++';
 
   constructor(args: string[]) {
@@ -15,6 +15,8 @@ export default class StartposModifier extends BaseModifier {
   }
 
   public filterTemplate(duration: number) {
-    return `[{0}]atrim=start=${duration * this.arguments[0]}ms:end=${duration}ms[{1}]`
+    return `[{0}]atrim=start=${
+      duration * this.arguments[0]
+    }ms:end=${duration}ms[{1}]`;
   }
-};
+}

@@ -8,7 +8,7 @@ import {
   OUTPUT_SAMPLE_RATE,
   TEMPLATE_REGEX,
   TYPE_BUFFER,
-  TYPE_STREAM
+  TYPE_STREAM,
 } from './constants';
 import { BaseModifier } from './modifiers';
 import { Scope } from './parser';
@@ -27,21 +27,18 @@ export default class Context<T = Buffer | ReadableStream> {
   }
 
   private get flattened() {
-    if (this._flattened)
-      return this._flattened;
-    return this._flattened = this.scope.flatten();
+    if (this._flattened) return this._flattened;
+    return (this._flattened = this.scope.flatten());
   }
 
   public get mute(): boolean {
-    if (this._mute !== undefined)
-      return this._mute;
+    if (this._mute !== undefined) return this._mute;
 
     if (this.flattened && this.flattened.length !== 0)
       for (const sound of this.flattened)
-        if (sound.text === MUTE_CHATSOUND)
-          return this._mute = true;
+        if (sound.text === MUTE_CHATSOUND) return (this._mute = true);
 
-    return this._mute = false;
+    return (this._mute = false);
   }
 
   private async prepare() {
@@ -67,14 +64,14 @@ export default class Context<T = Buffer | ReadableStream> {
     let soundCount = 0;
     for (let i = 0; i < this.flattened.length; i++) {
       const path = paths[i];
-      if (!path)
-        continue;
+      if (!path) continue;
       const scope = this.flattened[i];
-      const modifiers = scope.modifiers
-        .sort((a, b) => (b.modifier?.priority || 0) - (a.modifier?.priority || 0));
+      const modifiers = scope.modifiers.sort(
+        (a, b) => (b.modifier?.priority || 0) - (a.modifier?.priority || 0)
+      );
 
-      let output = named[i] = soundCount + ':a';
-      let duration = await this.chatsounds.cache.getDuration(path) * 1000;
+      let output = (named[i] = soundCount + ':a');
+      let duration = (await this.chatsounds.cache.getDuration(path)) * 1000;
       const stack: Record<string, number> = {};
       for (const modifierWrapper of modifiers) {
         const modifier = modifierWrapper.modifier as BaseModifier;
@@ -83,18 +80,19 @@ export default class Context<T = Buffer | ReadableStream> {
         if (stack[className] && stack[className] >= modifier.filterStackLimit)
           continue;
 
-        if (!stack[className])
-          stack[className] = 0;
+        if (!stack[className]) stack[className] = 0;
         stack[className]++;
 
-        const names = [ named[i] ];
+        const names = [named[i]];
         const template = modifier.filterTemplate(duration);
         if (template)
           filterComplex.push(
             template.replace(TEMPLATE_REGEX, (_match, number) => {
               let name = names[number];
               if (!name) {
-                name = Math.random().toString(16).substring(2, FILTER_NAME_LENGTH);
+                name = Math.random()
+                  .toString(16)
+                  .substring(2, FILTER_NAME_LENGTH);
                 names.push(name);
               }
               return name;
@@ -115,25 +113,28 @@ export default class Context<T = Buffer | ReadableStream> {
 
     const filteredPaths = paths.filter((x): x is string => x !== undefined);
 
-    const filterComplexArgument =[
+    const filterComplexArgument = [
       delayFilters.join(';'),
-      named.reduce((p, c) => p += '[' + c + ']', '')
-        + `amix=inputs=${filteredPaths.length}:dropout_transition=0:normalize=0[outa]`
+      named.reduce((p, c) => (p += '[' + c + ']'), '') +
+        `amix=inputs=${filteredPaths.length}:dropout_transition=0:normalize=0[outa]`,
     ];
 
     if (filterComplex.length !== 0)
       filterComplexArgument.unshift(filterComplex.join(';'));
 
     const args = [
-      ...filteredPaths
-        .map(path => [ '-i', path ])
-        .flat(),
-      '-filter_complex', filterComplexArgument.join(';'),
-      '-map', '[outa]',
-      '-f', 's16le',
-      '-ar', OUTPUT_SAMPLE_RATE.toString(),
-      '-ac', OUTPUT_AUDIO_CHANNELS.toString(),
-      '-'
+      ...filteredPaths.map(path => ['-i', path]).flat(),
+      '-filter_complex',
+      filterComplexArgument.join(';'),
+      '-map',
+      '[outa]',
+      '-f',
+      's16le',
+      '-ar',
+      OUTPUT_SAMPLE_RATE.toString(),
+      '-ac',
+      OUTPUT_AUDIO_CHANNELS.toString(),
+      '-',
     ];
 
     return spawn('ffmpeg', args);
@@ -143,20 +144,21 @@ export default class Context<T = Buffer | ReadableStream> {
     switch (this.type) {
       case TYPE_BUFFER: {
         const child = await this.prepare();
-        if (!child)
-          return null;
+        if (!child) return null;
         return await new Promise<T>(res => {
           let buffer = Buffer.alloc(0);
-          child.stdout.on('data', (data) => buffer = Buffer.concat([ buffer, data ]));
+          child.stdout.on(
+            'data',
+            data => (buffer = Buffer.concat([buffer, data]))
+          );
           child.stdout.on('end', () => res(buffer as T));
         });
-      };
+      }
       case TYPE_STREAM: {
         const child = await this.prepare();
-        if (!child)
-          return null;
+        if (!child) return null;
         return child.stdout as T;
-      };
+      }
       default:
         return null;
     }

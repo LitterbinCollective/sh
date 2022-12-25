@@ -4,14 +4,14 @@ import {
   SCOPE_TYPE_GROUP,
   SCOPE_TYPE_MISC,
   SCOPE_TYPE_MODIFIER_EXPRESSION,
-  SCOPE_TYPE_SOUND
+  SCOPE_TYPE_SOUND,
 } from './constants';
 import { BaseModifier } from './modifiers';
 
 interface ScopeOptions {
   currentIndex?: number;
   endIndex?: number;
-  modifier?: BaseModifier,
+  modifier?: BaseModifier;
   parser: Parser;
   parent?: Scope;
   root?: boolean;
@@ -32,7 +32,16 @@ export class Scope {
   public type;
   private readonly parser;
 
-  constructor({ parser, parent, text, root, type, endIndex, currentIndex, modifier }: ScopeOptions) {
+  constructor({
+    parser,
+    parent,
+    text,
+    root,
+    type,
+    endIndex,
+    currentIndex,
+    modifier,
+  }: ScopeOptions) {
     this.parser = parser;
     this.text = text || '';
     this.root = root || false;
@@ -40,15 +49,12 @@ export class Scope {
     this.endIndex = endIndex || 0;
     this.currentIndex = currentIndex || 0;
 
-    if (parent !== undefined)
-      this.parent = parent;
-    if (modifier !== undefined)
-      this.modifier = modifier;
+    if (parent !== undefined) this.parent = parent;
+    if (modifier !== undefined) this.modifier = modifier;
   }
 
   public flatten(): Scope[] | undefined {
-    if (this.type !== SCOPE_TYPE_GROUP)
-      return;
+    if (this.type !== SCOPE_TYPE_GROUP) return;
 
     const flattened = [];
 
@@ -56,8 +62,7 @@ export class Scope {
       switch (child.type) {
         case SCOPE_TYPE_GROUP:
           const array = child.flatten();
-          if (array)
-            flattened.push(...array);
+          if (array) flattened.push(...array);
           break;
         case SCOPE_TYPE_SOUND:
           child.modifiers = child.modifiers.concat(this.modifiers);
@@ -70,8 +75,7 @@ export class Scope {
   }
 
   public processChildren() {
-    if (this.type !== SCOPE_TYPE_GROUP)
-      return;
+    if (this.type !== SCOPE_TYPE_GROUP) return;
 
     if (this.sounds.length > 0) {
       const newArray = this.children.concat(this.sounds);
@@ -82,8 +86,7 @@ export class Scope {
   }
 
   public parseSounds(input: string, collectedModifiers: Scope[]) {
-    if (this.type !== SCOPE_TYPE_GROUP)
-      return collectedModifiers;
+    if (this.type !== SCOPE_TYPE_GROUP) return collectedModifiers;
 
     if (this.parser.chatsounds.lookup[this.text]) {
       const scope = new Scope({
@@ -91,7 +94,7 @@ export class Scope {
         type: SCOPE_TYPE_SOUND,
         text: this.text,
         parser: this.parser,
-        endIndex: this.currentIndex + this.text.length
+        endIndex: this.currentIndex + this.text.length,
       });
       this.sounds.push(scope);
     } else {
@@ -109,7 +112,10 @@ export class Scope {
 
             const chunk = this.text.substring(relativeStart, i + 1).trim();
             if (chunk.length >= 0 && this.parser.chatsounds.lookup[chunk]) {
-              const pos = input.indexOf(chunk, this.currentIndex + relativeStart);
+              const pos = input.indexOf(
+                chunk,
+                this.currentIndex + relativeStart
+              );
               const scope = new Scope({
                 endIndex: pos + chunk.length,
                 parent: this,
@@ -127,10 +133,8 @@ export class Scope {
         }
 
         if (!match)
-          if (lastSpace === -1)
-            break
-          else
-            relativeStart = lastSpace + 1;
+          if (lastSpace === -1) break;
+          else relativeStart = lastSpace + 1;
       }
     }
 
@@ -138,8 +142,7 @@ export class Scope {
       const last = this.sounds[this.sounds.length - 1];
       for (let i = collectedModifiers.length - 1; i >= 0; i--) {
         const modifier = collectedModifiers[i];
-        if (modifier.endIndex < last.endIndex)
-          break;
+        if (modifier.endIndex < last.endIndex) break;
         last.modifiers.unshift(modifier);
         collectedModifiers.splice(i, 1);
       }
@@ -156,7 +159,7 @@ export class Scope {
   public get length() {
     return this.children.length;
   }
-};
+}
 
 export default class Parser {
   public readonly chatsounds;
@@ -174,9 +177,11 @@ export default class Parser {
 
     for (const name in this.chatsounds.modifiers) {
       const modifier = this.chatsounds.modifiers[name];
-      if (!modifier.legacyExpression)
-        continue;
-      const regex = new RegExp(this.regexSafe(modifier.legacyExpression) + '([0-9.]+)', 'g');
+      if (!modifier.legacyExpression) continue;
+      const regex = new RegExp(
+        this.regexSafe(modifier.legacyExpression) + '([0-9.]+)',
+        'g'
+      );
       input = input.replace(regex, (_, argument) => {
         argument = modifier.onLegacyExpressionUsed(argument);
         return ':' + name + '(' + argument + ')';
@@ -186,7 +191,7 @@ export default class Parser {
     const global = new Scope({
       parser: this,
       root: true,
-      type: SCOPE_TYPE_GROUP
+      type: SCOPE_TYPE_GROUP,
     });
     let current = global;
     let collectedModifiers: Scope[] = [];
@@ -204,7 +209,7 @@ export default class Parser {
             endIndex: i,
             parser: this,
             parent: current,
-            type: SCOPE_TYPE_GROUP
+            type: SCOPE_TYPE_GROUP,
           });
           current.unshift(scope);
 
@@ -216,13 +221,11 @@ export default class Parser {
           current = scope;
           break;
         case '(':
-          if (current.root)
-            break;
+          if (current.root) break;
 
           collectedModifiers = current.parseSounds(input, collectedModifiers);
           current.processChildren();
-          if (current.parent)
-            current = current.parent;
+          if (current.parent) current = current.parent;
           break;
         case ':':
           const modifier = current.text.split(REPEATED_SPACES_REGEX, 1)[0];
@@ -234,40 +237,42 @@ export default class Parser {
 
             if (current.length > 0) {
               const lastScope = current.children[0];
-              const assigned = lastScope.type === SCOPE_TYPE_MODIFIER_EXPRESSION;
+              const assigned =
+                lastScope.type === SCOPE_TYPE_MODIFIER_EXPRESSION;
 
               if (!assigned) {
                 lastScope.type = SCOPE_TYPE_MODIFIER_EXPRESSION;
 
                 if (lastScope.modifiers.length > 0) {
-                  collectedModifiers = collectedModifiers.concat(lastScope.modifiers);
+                  collectedModifiers = collectedModifiers.concat(
+                    lastScope.modifiers
+                  );
                   lastScope.modifiers = [];
                 }
 
                 lastScope.sounds = [];
                 endIndex = lastScope.endIndex;
-                args = input.substring(lastScope.currentIndex + 1, lastScope.endIndex).split(',');
-              } else
-                endIndex = i + modifier.length;
-            } else
-              endIndex = i + modifier.length;
+                args = input
+                  .substring(lastScope.currentIndex + 1, lastScope.endIndex)
+                  .split(',');
+              } else endIndex = i + modifier.length;
+            } else endIndex = i + modifier.length;
 
             const modifierInstance = new Scope({
               endIndex,
               modifier: new selected(args),
               parser: this,
               text: '',
-              type: SCOPE_TYPE_MISC
+              type: SCOPE_TYPE_MISC,
             });
 
             collectedModifiers.unshift(modifierInstance);
             const space = current.text.search(REPEATED_SPACES_REGEX);
             if (space !== -1)
               current.text = current.text.substring(space).trim();
-            else
-              current.text = '';
+            else current.text = '';
 
-            current.currentIndex = endIndex
+            current.currentIndex = endIndex;
             collectedModifiers = current.parseSounds(input, collectedModifiers);
           }
           break;
@@ -281,4 +286,4 @@ export default class Parser {
 
     return global;
   }
-};
+}

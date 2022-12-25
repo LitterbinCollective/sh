@@ -1,7 +1,7 @@
 import BaseModifier from './basemodifier';
 
 export default class LFOVolumeModifier extends BaseModifier {
-  public static defaultArguments = [ '5', '1' ];
+  public static defaultArguments = ['5', '1'];
 
   constructor(args: string[]) {
     super(args);
@@ -11,6 +11,6 @@ export default class LFOVolumeModifier extends BaseModifier {
   }
 
   public filterTemplate(_: number) {
-    return `[{0}]tremolo=f=${this.arguments[0]}:d=${this.arguments[1]}[{1}]`
+    return `[{0}]tremolo=f=${this.arguments[0]}:d=${this.arguments[1]}[{1}]`;
   }
-};
+}

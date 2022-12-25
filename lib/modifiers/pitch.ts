@@ -4,7 +4,7 @@ import BaseModifier from './basemodifier';
 export default class PitchModifier extends BaseModifier {
   // asetrate is applied to the last one
   public filterStackLimit = 1;
-  public static defaultArguments = [ '1' ];
+  public static defaultArguments = ['1'];
   public static legacyExpression = '%';
 
   constructor(args: string[]) {
@@ -23,10 +23,12 @@ export default class PitchModifier extends BaseModifier {
   }
 
   public filterTemplate(_: number) {
-    const [ pitch ] = this.arguments;
+    const [pitch] = this.arguments;
     if (pitch === 0) return false;
 
     const suffix = pitch < 0 ? ',areverse' : '';
-    return `[{0}]asetrate=${OUTPUT_SAMPLE_RATE * Math.abs(pitch)}` + suffix + '[{1}]'
+    return (
+      `[{0}]asetrate=${OUTPUT_SAMPLE_RATE * Math.abs(pitch)}` + suffix + '[{1}]'
+    );
   }
-};
+}

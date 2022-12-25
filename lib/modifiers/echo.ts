@@ -3,7 +3,7 @@ import BaseModifier from './basemodifier';
 const MAXIMUM_ECHOES = 512;
 
 export default class EchoModifier extends BaseModifier {
-  public static defaultArguments = [ '0.25', '0.5' ];
+  public static defaultArguments = ['0.25', '0.5'];
   private decays: string[] = [];
   private delays: number[] = [];
 
@@ -20,8 +20,7 @@ export default class EchoModifier extends BaseModifier {
     let iterations = 0;
     for (let i = 1 - decayFactor; i > 0; i *= decayFactor) {
       const fixedDecay = i.toFixed(2);
-      if (iterations > MAXIMUM_ECHOES || +fixedDecay === 0)
-        break;
+      if (iterations > MAXIMUM_ECHOES || +fixedDecay === 0) break;
       iterations++;
 
       const delay: number = this.arguments[0] * (this.delays.length + 1) * 1000;
@@ -44,6 +43,8 @@ export default class EchoModifier extends BaseModifier {
     if (this.decays.length === 0 || this.delays.length === 0)
       this.processEchoes();
 
-    return `[{0}]aecho=1:1:${this.delays.join('|')}:${this.decays.join('|')}[{1}]`
+    return `[{0}]aecho=1:1:${this.delays.join('|')}:${this.decays.join(
+      '|'
+    )}[{1}]`;
   }
-};
+}

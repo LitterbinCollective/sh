@@ -10,7 +10,7 @@ import {
   SCOPE_TYPE_SOUND,
   TYPE_BUFFER,
   TYPE_STREAM,
-  UNDERSCORE_DASH_REGEX
+  UNDERSCORE_DASH_REGEX,
 } from './constants';
 import Context from './context';
 import { BaseModifier as basemodifier } from './modifiers';
@@ -20,9 +20,9 @@ export const BaseModifier = basemodifier;
 export { defaultModifiers } from './modifiers';
 
 export interface Chatsound {
-  url: string,
-  realm: string
-};
+  url: string;
+  realm: string;
+}
 
 export default class Chatsounds {
   public cache: CacheManager = new CacheManager('cache/');
@@ -34,26 +34,28 @@ export default class Chatsounds {
 
   public useModifiers(modifiers: Record<string, typeof basemodifier>) {
     for (const modifier in modifiers) {
-      if (this.modifiers[modifier])
-        continue;
+      if (this.modifiers[modifier]) continue;
       this.modifiers[modifier] = modifiers[modifier];
     }
   }
 
   private async getGitHubSHA(repository: string, branch: string) {
-    const { data } = await axios.get(`https://api.github.com/repos/${repository}/git/refs`);
+    const { data } = await axios.get(
+      `https://api.github.com/repos/${repository}/git/refs`
+    );
     const search = 'refs/heads/' + branch;
-    for (const { ref, object } of data)
-      if (ref === search)
-        return object.sha;
+    for (const { ref, object } of data) if (ref === search) return object.sha;
   }
 
-  private async gitHubCacheSafetyCheck(repository: string, branch: string, base: string) {
+  private async gitHubCacheSafetyCheck(
+    repository: string,
+    branch: string,
+    base: string
+  ) {
     const identifier = repository + '#' + branch + '/' + base;
     const hash = await this.getGitHubSHA(repository, branch);
     const storedInMemory = this.hashes[identifier] !== undefined;
-    if (storedInMemory && this.hashes[identifier] === hash)
-      return false;
+    if (storedInMemory && this.hashes[identifier] === hash) return false;
 
     let sounds = null,
       use = false;
@@ -67,10 +69,17 @@ export default class Chatsounds {
     return { identifier, use, sounds, storedInMemory, hash };
   }
 
-  public async useSourcesFromGitHub(repository: string, branch: string, base: string) {
-    const response = await this.gitHubCacheSafetyCheck(repository, branch, base);
-    if (!response || response.storedInMemory)
-      return false;
+  public async useSourcesFromGitHub(
+    repository: string,
+    branch: string,
+    base: string
+  ) {
+    const response = await this.gitHubCacheSafetyCheck(
+      repository,
+      branch,
+      base
+    );
+    if (!response || response.storedInMemory) return false;
 
     base = base.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const basePathRegex = new RegExp('^' + base, 'g');
@@ -80,7 +89,9 @@ export default class Chatsounds {
       this.hashes[response.identifier] = response.hash;
       return true;
     } else {
-      const { data } = await axios.get(`https://api.github.com/repos/${repository}/git/trees/${branch}?recursive=1`);
+      const { data } = await axios.get(
+        `https://api.github.com/repos/${repository}/git/trees/${branch}?recursive=1`
+      );
       this.list[response.identifier] = {};
 
       for (const fileData of data.tree)
@@ -101,33 +112,47 @@ export default class Chatsounds {
 
             this.list[response.identifier][sound].push({
               realm,
-              url: `https://raw.githubusercontent.com/${repository}/${branch}/${fileData.path}`
+              url: `https://raw.githubusercontent.com/${repository}/${branch}/${fileData.path}`,
             });
           }
         }
 
-      await this.cache.writeLocalList(response.hash, response.identifier, this.list[response.identifier]);
+      await this.cache.writeLocalList(
+        response.hash,
+        response.identifier,
+        this.list[response.identifier]
+      );
       this.hashes[response.identifier] = response.hash;
       return true;
     }
   }
 
-  public async useSourcesFromGitHubMsgPack(repository: string, branch: string, base: string) {
-    const response = await this.gitHubCacheSafetyCheck(repository, branch, base);
-    if (!response || response.storedInMemory)
-      return false;
+  public async useSourcesFromGitHubMsgPack(
+    repository: string,
+    branch: string,
+    base: string
+  ) {
+    const response = await this.gitHubCacheSafetyCheck(
+      repository,
+      branch,
+      base
+    );
+    if (!response || response.storedInMemory) return false;
 
     if (response.use && response.sounds) {
       this.list[response.identifier] = response.sounds;
       this.hashes[response.identifier] = response.hash;
       return true;
     } else {
-      const { data } = await axios.get(`https://raw.githubusercontent.com/${repository}/${branch}/${base}/list.msgpack`, { responseType: 'stream', });
+      const { data } = await axios.get(
+        `https://raw.githubusercontent.com/${repository}/${branch}/${base}/list.msgpack`,
+        { responseType: 'stream' }
+      );
       const generator = decodeArrayStream(data);
       this.list[response.identifier] = {};
 
       for await (const data of generator) {
-        let [ realm, sound, path ] = data as string[];
+        let [realm, sound, path] = data as string[];
         realm = realm.toLowerCase();
         sound = sound
           .toLowerCase()
@@ -141,29 +166,34 @@ export default class Chatsounds {
 
           this.list[response.identifier][sound].push({
             realm,
-            url: `https://raw.githubusercontent.com/${repository}/${branch}/${base}/${path}`
+            url: `https://raw.githubusercontent.com/${repository}/${branch}/${base}/${path}`,
           });
         }
       }
 
-      await this.cache.writeLocalList(response.hash, response.identifier, this.list[response.identifier]);
+      await this.cache.writeLocalList(
+        response.hash,
+        response.identifier,
+        this.list[response.identifier]
+      );
       this.hashes[response.identifier] = response.hash;
       return true;
     }
   }
 
   public getRequiredSound(sound: Scope, last?: Chatsound) {
-    if (sound.type !== SCOPE_TYPE_SOUND)
-      return;
+    if (sound.type !== SCOPE_TYPE_SOUND) return;
 
     let matches = this.lookup[sound.text];
     let index = Math.floor(Math.random() * matches.length);
 
     let modified = false;
     for (const modifier of sound.modifiers) {
-      if (!modifier.modifier)
-        continue;
-      const { index: i, matches: m } = modifier.modifier.onSelection(index, matches);
+      if (!modifier.modifier) continue;
+      const { index: i, matches: m } = modifier.modifier.onSelection(
+        index,
+        matches
+      );
 
       if (index !== i) {
         index = i;
@@ -180,19 +210,16 @@ export default class Chatsounds {
       let realmSpecific = [];
 
       for (const sound of matches)
-        if (sound.realm === last.realm)
-          realmSpecific.push(sound);
+        if (sound.realm === last.realm) realmSpecific.push(sound);
 
       if (realmSpecific.length > 0) {
-        matches = realmSpecific
+        matches = realmSpecific;
         index = Math.floor(Math.random() * matches.length);
       }
     }
 
-    if (index > matches.length - 1)
-      index = matches.length - 1;
-    if (index < 0)
-      index = 0;
+    if (index > matches.length - 1) index = matches.length - 1;
+    if (index < 0) index = 0;
 
     return matches[index];
   }
@@ -207,7 +234,7 @@ export default class Chatsounds {
 
   public mergeSources() {
     this.lookup = {
-      [MUTE_CHATSOUND]: []
+      [MUTE_CHATSOUND]: [],
     };
 
     for (const src in this.list) {
@@ -215,13 +242,11 @@ export default class Chatsounds {
 
       for (const name in source) {
         const data = source[name];
-        if (this.lookup[name] === undefined)
-          this.lookup[name] = [];
+        if (this.lookup[name] === undefined) this.lookup[name] = [];
 
         const urls: Record<string, true> = {};
         for (const chatsound of data) {
-          if (urls[chatsound.url])
-            continue;
+          if (urls[chatsound.url]) continue;
 
           this.lookup[name].push(chatsound);
           urls[chatsound.url] = true;
@@ -231,4 +256,4 @@ export default class Chatsounds {
       }
     }
   }
-};
+}

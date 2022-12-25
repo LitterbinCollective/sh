@@ -2,7 +2,7 @@ import BaseModifier from './basemodifier';
 
 export default class DurationModifier extends BaseModifier {
   public priority = -1;
-  public static defaultArguments = [ '1' ];
+  public static defaultArguments = ['1'];
   public static legacyExpression = '=';
 
   constructor(args: string[]) {
@@ -14,4 +14,4 @@ export default class DurationModifier extends BaseModifier {
   public modifyDuration(_: number): number {
     return this.arguments[0];
   }
-};
+}

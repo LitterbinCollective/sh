@@ -1,7 +1,7 @@
 import BaseModifier from './basemodifier';
 
 export default class VolumeModifier extends BaseModifier {
-  public static defaultArguments = [ '1' ];
+  public static defaultArguments = ['1'];
   public static legacyExpression = '^';
 
   constructor(args: string[]) {
@@ -15,6 +15,6 @@ export default class VolumeModifier extends BaseModifier {
   }
 
   public filterTemplate(_: number) {
-    return `[{0}]volume=volume=${this.arguments[0]}[{1}]`
+    return `[{0}]volume=volume=${this.arguments[0]}[{1}]`;
   }
-};
+}

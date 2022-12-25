@@ -9,7 +9,7 @@ import BaseModifier from './basemodifier';
 */
 export default class RepeatModifier extends BaseModifier {
   public priority = -1;
-  public static defaultArguments = [ '1' ];
+  public static defaultArguments = ['1'];
   public static legacyExpression = '*';
 
   constructor(args: string[]) {
@@ -23,7 +23,7 @@ export default class RepeatModifier extends BaseModifier {
   }
 
   public filterTemplate(duration: number) {
-    const size = OUTPUT_SAMPLE_RATE / 1000 * duration;
+    const size = (OUTPUT_SAMPLE_RATE / 1000) * duration;
     return `[{0}]aloop=loop=${this.arguments[0]}:size=${size}[{1}]`;
   }
-};
+}

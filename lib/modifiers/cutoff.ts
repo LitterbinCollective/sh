@@ -1,7 +1,7 @@
 import BaseModifier from './basemodifier';
 
 export default class CutoffModifier extends BaseModifier {
-  public static defaultArguments = [ '100' ];
+  public static defaultArguments = ['100'];
   public static legacyExpression = '--';
 
   constructor(args: string[]) {
@@ -15,6 +15,6 @@ export default class CutoffModifier extends BaseModifier {
   }
 
   public filterTemplate(duration: number) {
-    return `[{0}]atrim=start=0:end=${duration * this.arguments[0]}ms[{1}]`
+    return `[{0}]atrim=start=0:end=${duration * this.arguments[0]}ms[{1}]`;
   }
-};
+}

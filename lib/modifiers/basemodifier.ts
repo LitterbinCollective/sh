@@ -12,7 +12,9 @@ export default class BaseModifier {
   }
 
   public checkNaNArguments(self: typeof BaseModifier) {
-    this.arguments = this.arguments.map((x, i) => isNaN(x) ? +self.defaultArguments[i] : x);
+    this.arguments = this.arguments.map((x, i) =>
+      isNaN(x) ? +self.defaultArguments[i] : x
+    );
   }
 
   public static onLegacyExpressionUsed(value: string): string {
@@ -30,4 +32,4 @@ export default class BaseModifier {
   public filterTemplate(duration: number): string | false {
     return false;
   }
-};
+}

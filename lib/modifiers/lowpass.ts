@@ -1,7 +1,7 @@
 import BaseModifier from './basemodifier';
 
 export default class LowpassModifier extends BaseModifier {
-  public static defaultArguments = [ '1' ];
+  public static defaultArguments = ['1'];
 
   constructor(args: string[]) {
     super(args);
@@ -10,6 +10,6 @@ export default class LowpassModifier extends BaseModifier {
   }
 
   public filterTemplate(_: number) {
-    return `[{0}]lowpass=f=${this.arguments[0] * 24000}[{1}]`
+    return `[{0}]lowpass=f=${this.arguments[0] * 24000}[{1}]`;
   }
-};
+}

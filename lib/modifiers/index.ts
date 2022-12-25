@@ -29,5 +29,5 @@ export const defaultModifiers = {
   select: SelectModifier,
   skip: StartposModifier,
   startpos: StartposModifier,
-  volume: VolumeModifier
+  volume: VolumeModifier,
 };
