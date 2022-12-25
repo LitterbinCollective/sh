@@ -14,7 +14,7 @@ export default class PitchModifier extends BaseModifier {
   }
 
   static onLegacyExpressionUsed(value: string) {
-    return (+value / 100).toString();
+    return (+value / 100).toFixed(2);
   }
 
   public modifyDuration(duration: number) {

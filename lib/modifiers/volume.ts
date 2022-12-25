@@ -10,6 +10,10 @@ export default class VolumeModifier extends BaseModifier {
     this.checkNaNArguments(VolumeModifier);
   }
 
+  public static onLegacyExpressionUsed(value: string): string {
+    return (+value / 100).toFixed(2);
+  }
+
   public filterTemplate(_: number) {
     return `[{0}]volume=volume=${this.arguments[0]}[{1}]`
   }
