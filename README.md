@@ -43,8 +43,4 @@ const sh = new Chatsounds();
   const buffer = await context2.audio();
   // [...]
 })();
-
-
-const script = sh.Parser.parse("more chat sound here more more");
-const stream = sh.Audio.run(script);
 ```
