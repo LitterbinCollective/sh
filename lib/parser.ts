@@ -252,9 +252,10 @@ export default class Parser {
 
                 lastScope.sounds = [];
                 endIndex = lastScope.endIndex;
-                args = input
+                const specified = input
                   .substring(lastScope.currentIndex + 1, lastScope.endIndex)
                   .split(',');
+                args = args.map((x, i) => specified[i] || x);
               } else endIndex = i + modifier.length;
             } else endIndex = i + modifier.length;
 

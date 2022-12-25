@@ -24,7 +24,7 @@ export default class EchoModifier extends BaseModifier {
       iterations++;
 
       const delay: number = this.arguments[0] * (this.delays.length + 1) * 1000;
-      // ffmpeg does not allow a 90-second echo
+      // ffmpeg does not allow a >90-second echo
       if (delay > 90000) break;
 
       this.delays.push(delay);
