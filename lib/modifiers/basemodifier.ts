@@ -1,12 +1,18 @@
 import { Chatsound } from '..';
 
 export default class BaseModifier {
-  public static defaultArguments = [];
+  public arguments: any[] = [];
+  public priority = 0;
+  public filterStackLimit = 3;
+  public static defaultArguments: string[] = [];
   public static legacyExpression: string | null = null;
-  private arguments: any[] = [];
 
   constructor(args: string[]) {
     this.arguments = args;
+  }
+
+  public checkNaNArguments(self: typeof BaseModifier) {
+    this.arguments = this.arguments.map((x, i) => isNaN(x) ? +self.defaultArguments[i] : x);
   }
 
   public static onLegacyExpressionUsed(value: string): string {
@@ -17,7 +23,11 @@ export default class BaseModifier {
     return { index, matches };
   }
 
-  public get filterTemplate(): string | false {
+  public modifyDuration(duration: number) {
+    return duration;
+  }
+
+  public filterTemplate(duration: number): string | false {
     return false;
   }
 };

@@ -1,6 +1,7 @@
 export const UNDERSCORE_DASH_REGEX = /[_-]/g;
 export const REPEATED_SPACES_REGEX = /\s+/g;
 export const TEMPLATE_REGEX = /{(\d+)}/g;
+export const OGG_FILE_EXTENSION_REGEX = /\.ogg$/g;
 
 export const TYPE_BUFFER = 'buffer';
 export const TYPE_STREAM = 'stream';

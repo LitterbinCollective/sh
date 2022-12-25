@@ -4,6 +4,7 @@ import { decodeArrayStream } from '@msgpack/msgpack';
 
 import CacheManager from './cache';
 import {
+  OGG_FILE_EXTENSION_REGEX,
   REPEATED_SPACES_REGEX,
   SCOPE_TYPE_SOUND,
   TYPE_BUFFER,
@@ -74,7 +75,7 @@ export default class Chatsounds {
         realm = realm.toLowerCase();
         sound = sound
           .toLowerCase()
-          .substring(0, sound.length - '.ogg'.length)
+          .replaceAll(OGG_FILE_EXTENSION_REGEX, '')
           .replaceAll(UNDERSCORE_DASH_REGEX, ' ')
           .replaceAll(REPEATED_SPACES_REGEX, ' ');
 

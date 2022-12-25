@@ -38,7 +38,7 @@ export default class Context<T = Buffer | ReadableStream> {
   }
 
   private async prepare() {
-    if (!this.flattened) return;
+    if (!this.flattened || this.flattened.length === 0) return;
     let last: Chatsound | undefined;
 
     let paths = await Promise.all(
@@ -51,22 +51,35 @@ export default class Context<T = Buffer | ReadableStream> {
       })
     );
 
-    paths = paths.map(path => [ '-i', path ]).flat();
-
     const named: string[] = [];
     const filterComplex: string[] = [];
+    const delayFilters = [];
+    let time = 0;
     for (let i = 0; i < this.flattened.length; i++) {
       const scope = this.flattened[i];
+      const modifiers = scope.modifiers
+        .sort((a, b) => (b.modifier?.priority || 0) - (a.modifier?.priority || 0));
+      console.log(modifiers);
 
-      named.push(i + ':a');
-      for (const modifierWrapper of scope.modifiers) {
+      let output = named[i] = i + ':a';
+      let duration = await this.chatsounds.cache.getDuration(paths[i]) * 1000;
+      const stack: Record<string, number> = {};
+      for (const modifierWrapper of modifiers) {
         const modifier = modifierWrapper.modifier as BaseModifier;
+        const { name: className } = modifier.constructor;
 
-        const names = [ named[named.length - 1] ];
-        const processed = modifier.filterTemplate;
-        if (processed)
+        if (stack[className] && stack[className] >= modifier.filterStackLimit)
+          continue;
+
+        if (!stack[className])
+          stack[className] = 0;
+        stack[className]++;
+
+        const names = [ named[i] ];
+        const template = modifier.filterTemplate(duration);
+        if (template)
           filterComplex.push(
-            processed.replace(TEMPLATE_REGEX, (_match, number) => {
+            template.replace(TEMPLATE_REGEX, (_match, number) => {
               let name = names[number];
               if (!name) {
                 name = Math.random().toString(16).substring(2, FILTER_NAME_LENGTH);
@@ -75,18 +88,30 @@ export default class Context<T = Buffer | ReadableStream> {
               return name;
             })
           );
-        named[named.length - 1] = names[names.length - 1];
+
+        duration = modifier.modifyDuration(duration);
+        output = named[named.length - 1] = names[names.length - 1];
       }
+
+      const delayedOutput = output + '-d';
+      delayFilters.push(`[${output}]adelay=${time}|${time}[${delayedOutput}]`);
+      named[i] = delayedOutput;
+
+      time += duration;
     }
 
-    filterComplex.push(
-      named.reduce((p, c) => p += `[${c}]`, '') +
-      `concat=n=${paths.length / 2}:v=0:a=1[outa]`
-    );
+    const filterComplexArgument =[
+      delayFilters.join(';'),
+      named.reduce((p, c) => p += '[' + c + ']', '')
+        + `amix=inputs=${this.flattened.length}:dropout_transition=0:normalize=0[outa]`
+    ];
+
+    if (filterComplex.length !== 0)
+      filterComplexArgument.unshift(filterComplex.join(';'));
 
     const args = [
-      ...paths,
-      '-filter_complex', filterComplex.join(';'),
+      ...paths.map(path => [ '-i', path ]).flat(),
+      '-filter_complex', filterComplexArgument.join(';'),
       '-map', '[outa]',
       '-f', 's16le',
       '-ar', OUTPUT_SAMPLE_RATE.toString(),
@@ -100,13 +125,22 @@ export default class Context<T = Buffer | ReadableStream> {
 
   public async audio(): Promise<T | null> {
     switch (this.type) {
-      case TYPE_BUFFER:
-        return null;
-      case TYPE_STREAM:
+      case TYPE_BUFFER: {
+        const child = await this.prepare();
+        if (!child)
+          return null;
+        return await new Promise<T>(res => {
+          let buffer = Buffer.alloc(0);
+          child.stdout.on('data', (data) => buffer = Buffer.concat([ buffer, data ]));
+          child.stdout.on('end', () => res(buffer as T));
+        });
+      };
+      case TYPE_STREAM: {
         const child = await this.prepare();
         if (!child)
           return null;
         return child.stdout as T;
+      };
       default:
         return null;
     }

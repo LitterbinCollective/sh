@@ -140,7 +140,7 @@ export class Scope {
         const modifier = collectedModifiers[i];
         if (modifier.endIndex < last.endIndex)
           break;
-        last.modifiers.push(modifier);
+        last.modifiers.unshift(modifier);
         collectedModifiers.splice(i, 1);
       }
     }
