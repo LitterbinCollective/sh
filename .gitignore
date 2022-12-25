@@ -1,15 +1,7 @@
 node_modules/
 cache/*
 
-sh.min.js
+dist/
 
-# Testing files used locally.
-result.json
-shat.txt
+# testing files
 test.raw
-4inthemorning.raw
-shat.json
-burunyaa.raw
-ragtime.raw
-test.mp3
-hi.raw

@@ -1,68 +1,46 @@
 # sh <img align="right" width="100" src="https://litterbin.dev/media/sh.png">
-A chatsound processor written in JS.
+A Chatsounds processor written in TypeScript. It can not be accurate.
+
+## Prerequisites
+Download FFmpeg and place the folder with it in the PATH environment variable.
 
 ## Installation
 Run `npm install github:NonagonNetwork/sh` to install.
 
-### Browser Preface
-:echo, :lfopitch and :lfovolume modifiers have been copied over from
-[Metastruct/notagain](https://github.com/Metastruct/notagain).
+## Limitations
+*(also laziness)*
 
-notagain audio effects with Web Audio API implementation uses
-ScriptProcessorNode, which has multiple issues:
-- User might hear clicks and pops;
-- [ScriptProcessorNode is deprecated and is planned for the removal in the future.](https://developer.mozilla.org/en-US/docs/Web/API/ScriptProcessorNode)
+### FFmpeg
+Since the package is using FFmpeg, some features that are included in the Garry's
+Mod versions of Chatsounds do not exist or are limited.
 
-That being said, 3-rd party contributions (or pull requests) to this
-repository are welcome! To test your changes use `browsertest` folder.
-
-### Node.JS Preface
-*If you're planning to use this in Node.JS, please make sure you have
-`ffmpeg` installed and put in PATH environment variable.*
+### Output
+sh is hard-coded to export signed 16-bit little-endian PCM stereo audio with
+the sample rate of 48000 Hz, meaning it is impossible to change the output format.
 
 ## Examples
 
-### Node.JS
+### JavaScript
 ```js
-const Sh = require('sh');
+const { default: Chatsounds, defaultModifiers } = require("sh");
 
-// If you have a long list, this can take a second to load,
-// as it creates a tree from it.
-const sh = new Sh({
-  "chat sound here": [
-    "http://url.to/chatsound/1.ogg",
-    "http://url.to/chatsound/2.ogg",
-    "http://url.to/chatsound/3.ogg",
-  ],
-  "more": [
-    "http://url.to/more/1.ogg",
-    "http://url.to/more/2.ogg",
-    "http://url.to/more/3.ogg",
-  ]
-});
+const sh = new Chatsounds();
+(async function() {
+  // set it up first
+  sh.useModifiers(defaultModifiers);
+  await sh.useSourcesFromGitHubMsgPack("PAC3-Server/chatsounds-valve-games", "master", "csgo");
+  sh.mergeSources();
 
-const script = sh.Parser.parse('more chat sound here more more');
-const stream = sh.Audio.run(script);
-```
+  // go wacky
 
-### Browser
-(Assuming you have imported it with the `<script>` tag.)
-```js
-const sh = new Sh({
-  "chat sound here": [
-    "http://url.to/chatsound/1.ogg",
-    "http://url.to/chatsound/2.ogg",
-    "http://url.to/chatsound/3.ogg",
-  ],
-  "more": [
-    "http://url.to/more/1.ogg",
-    "http://url.to/more/2.ogg",
-    "http://url.to/more/3.ogg",
-  ]
-});
+  // stream format
+  const context = sh.newStream('endmatch itemrevealraritycommon:echo');
+  const stream = await context.audio();
+  // [...]
 
-const script = sh.Parser.parse('more chat sound here more more');
-// This plays the sounds in this version, hence does not
-// return anything.
-sh.Audio.run(script);
+  // buffer format
+  const context2 = sh.newBuffer('endmatch itemrevealraritycommon:echo');
+  const buffer = await context2.audio();
+  // [...]
+})();
 ```

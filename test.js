@@ -1,32 +1,38 @@
-const { readFileSync } = require("fs");
-const Sh = require("./index.js");
-const { inspect } = require("util");
-let Speaker;
+const Speaker = require("speaker");
+const { default: Chatsounds, defaultModifiers } = require("./dist/index");
 
-try {
-  Speaker = require("speaker");
-  if (!Speaker)
-    throw new Error();
-} catch (err) {
-  console.log("no speaker, run npm install -g speaker");
-  process.exit(1);
+const sh = new Chatsounds();
+
+async function update() {
+  const response1 = await sh.useSourcesFromGitHubMsgPack("PAC3-Server/chatsounds-valve-games", "master", "csgo");
+  const response2 = await sh.useSourcesFromGitHub("Metastruct/garrysmod-chatsounds", "master", "sound/chatsounds/autoadd");
+
+  if (response1 || response2) {
+    console.log("new chatsounds data!");
+    sh.mergeSources();
+  }
 }
 
-const sh = new Sh(JSON.parse(readFileSync("./shat.json")));
-
-process.stdin.on("data", async data => {
+async function run(data) {
   data = data.toString().trim();
 
-  const script = sh.Parser.parse(data);
-  console.log(inspect(script, { compact: false, depth: Infinity, colors: true }));
-
+  const context = sh.newStream(data);
   const speaker = new Speaker({
     channels: 2, // 2 channels
     bitDepth: 16, // 16-bit samples
-    sampleRate: 48000, // 44,100 Hz sample rate
+    sampleRate: 48000, // 48,000 Hz sample rate
   });
   speaker.on("end", () => speaker.close());
+  console.log(context.scope.children[0].children)
 
-  const audio = await sh.Audio.run(script);
+  const audio = await context.audio();
   audio.pipe(speaker);
-});
+}
+
+(async function() {
+  await update();
+  setInterval(update, 60 * 60 * 1000);
+  sh.useModifiers(defaultModifiers);
+
+  process.stdin.on("data", run);
+})();
