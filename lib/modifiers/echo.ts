@@ -9,8 +9,8 @@ export default class EchoModifier extends BaseModifier {
 
   constructor(args: string[]) {
     super(args);
-    this.arguments[0] = +this.arguments[0];
-    this.arguments[1] = +this.arguments[1];
+    this.arguments[0] = Math.max(0, +this.arguments[0]);
+    this.arguments[1] = Math.max(0, +this.arguments[1]);
     this.checkNaNArguments(EchoModifier);
   }
 
@@ -18,8 +18,8 @@ export default class EchoModifier extends BaseModifier {
     const decayFactor = 1 - this.arguments[1];
 
     let iterations = 0;
-    for (let i = 1 - decayFactor; i > 0; i *= decayFactor) {
-      const fixedDecay = i.toFixed(2);
+    for (let i = 1 - decayFactor; i > 0; i -= decayFactor) {
+      const fixedDecay = i.toFixed(4);
       if (iterations > MAXIMUM_ECHOES || +fixedDecay === 0) break;
       iterations++;
 
@@ -43,8 +43,8 @@ export default class EchoModifier extends BaseModifier {
     if (this.decays.length === 0 || this.delays.length === 0)
       this.processEchoes();
 
-    return `[{0}]aecho=1:1:${this.delays.join('|')}:${this.decays.join(
-      '|'
-    )}[{1}]`;
+    const delays = this.delays.join('|');
+    const decays = this.decays.join('|')
+    return `[{0}]aecho=1:1:${delays}:${decays}[{1}]`;
   }
 }
