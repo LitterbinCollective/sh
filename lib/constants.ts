@@ -15,3 +15,5 @@ export const FILTER_NAME_LENGTH = 8;
 
 export const OUTPUT_SAMPLE_RATE = 48000;
 export const OUTPUT_AUDIO_CHANNELS = 2;
+
+export const MUTE_CHATSOUND = 'sh';

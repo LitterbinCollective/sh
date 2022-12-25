@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import Chatsounds, { Chatsound } from '.';
 import {
   FILTER_NAME_LENGTH,
+  MUTE_CHATSOUND,
   OUTPUT_AUDIO_CHANNELS,
   OUTPUT_SAMPLE_RATE,
   TEMPLATE_REGEX,
@@ -15,14 +16,13 @@ import { Scope } from './parser';
 export default class Context<T = Buffer | ReadableStream> {
   private scope: Scope;
   private _flattened?: Scope[];
+  private _mute?: boolean;
   private readonly chatsounds;
   private readonly type;
 
   constructor(chatsounds: Chatsounds, input: string, type: string) {
     this.chatsounds = chatsounds;
     this.scope = this.chatsounds.parser.parse(input);
-    console.log(this.scope);
-    console.log(this.flattened);
     this.type = type;
   }
 
@@ -32,9 +32,16 @@ export default class Context<T = Buffer | ReadableStream> {
     return this._flattened = this.scope.flatten();
   }
 
-  // check sh
   public get mute(): boolean {
-    return false;
+    if (this._mute !== undefined)
+      return this._mute;
+
+    if (this.flattened && this.flattened.length !== 0)
+      for (const sound of this.flattened)
+        if (sound.text === MUTE_CHATSOUND)
+          return this._mute = true;
+
+    return this._mute = false;
   }
 
   private async prepare() {
@@ -59,7 +66,6 @@ export default class Context<T = Buffer | ReadableStream> {
       const scope = this.flattened[i];
       const modifiers = scope.modifiers
         .sort((a, b) => (b.modifier?.priority || 0) - (a.modifier?.priority || 0));
-      console.log(modifiers);
 
       let output = named[i] = i + ':a';
       let duration = await this.chatsounds.cache.getDuration(paths[i]) * 1000;
@@ -119,7 +125,6 @@ export default class Context<T = Buffer | ReadableStream> {
       '-'
     ];
 
-    console.log(args);
     return spawn('ffmpeg', args);
   }
 

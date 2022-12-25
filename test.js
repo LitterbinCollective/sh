@@ -1,6 +1,5 @@
-const { readFileSync, createWriteStream } = require("fs");
-const { default: Chatsounds } = require("./dist/index");
-const { BaseModifier, defaultModifiers } = require("./dist/modifiers");
+const { createWriteStream } = require("fs");
+const { default: Chatsounds, defaultModifiers } = require("./dist/index");
 let Speaker;
 
 const sh = new Chatsounds();

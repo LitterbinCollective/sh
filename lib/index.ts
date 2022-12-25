@@ -4,6 +4,7 @@ import { decodeArrayStream } from '@msgpack/msgpack';
 
 import CacheManager from './cache';
 import {
+  MUTE_CHATSOUND,
   OGG_FILE_EXTENSION_REGEX,
   REPEATED_SPACES_REGEX,
   SCOPE_TYPE_SOUND,
@@ -16,6 +17,7 @@ import { BaseModifier as basemodifier } from './modifiers';
 import Parser, { Scope } from './parser';
 
 export const BaseModifier = basemodifier;
+export { defaultModifiers } from './modifiers';
 
 export interface Chatsound {
   url: string,
@@ -150,7 +152,7 @@ export default class Chatsounds {
 
   public mergeSources() {
     this.lookup = {
-      sh: []
+      [MUTE_CHATSOUND]: []
     };
 
     for (const src in this.list) {
@@ -174,4 +176,4 @@ export default class Chatsounds {
       }
     }
   }
-}
+};

@@ -86,7 +86,6 @@ export default class CacheManager {
       });
 
       child.stdout.on('end', () => {
-        console.log(buffer);
         const json = JSON.parse(buffer.toString());
         res(+json.format.duration);
       });
