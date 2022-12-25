@@ -30,9 +30,9 @@ export default class CacheManager {
     } catch(err) {}
   }
 
-  private getCachedSourceFilename(repository: string, branch: string) {
+  private getCachedSourceFilename(identifier: string) {
     const filename = createHash('sha256')
-      .update(repository + '#' + branch)
+      .update(identifier)
       .digest('hex');
     return join(this.directory, SOURCES_CACHE_DIRECTORY, filename + '.json')
   }
@@ -110,10 +110,10 @@ export default class CacheManager {
     return path;
   }
 
-  public async compareLocalList(hash: string, repository: string, branch: string) {
+  public async compareLocalList(hash: string, identifier: string) {
     await this.createNeededDirectories();
 
-    const path = this.getCachedSourceFilename(repository, branch);
+    const path = this.getCachedSourceFilename(identifier);
 
     if (existsSync(path)) {
       try {
@@ -125,10 +125,10 @@ export default class CacheManager {
     return { use: false };
   }
 
-  public async writeLocalList(hash: string, repository: string, branch: string, sounds: Record<string, Chatsound[]>) {
+  public async writeLocalList(hash: string, identifier: string, sounds: Record<string, Chatsound[]>) {
     await this.createNeededDirectories();
 
-    const path = this.getCachedSourceFilename(repository, branch);
+    const path = this.getCachedSourceFilename(identifier);
     await promises.writeFile(path, JSON.stringify(
       { sounds, hash } as CachedSource
     ));

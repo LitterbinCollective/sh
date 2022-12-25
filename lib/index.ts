@@ -59,7 +59,7 @@ export default class Chatsounds {
       use = false;
 
     if (!storedInMemory) {
-      const returned = await this.cache.compareLocalList(hash, repository, branch);
+      const returned = await this.cache.compareLocalList(hash, identifier);
       sounds = returned.sounds;
       use = returned.use;
     }
@@ -106,7 +106,7 @@ export default class Chatsounds {
           }
         }
 
-      await this.cache.writeLocalList(response.hash, repository, branch, this.list[response.identifier]);
+      await this.cache.writeLocalList(response.hash, response.identifier, this.list[response.identifier]);
       this.hashes[response.identifier] = response.hash;
       return true;
     }
@@ -146,7 +146,7 @@ export default class Chatsounds {
         }
       }
 
-      await this.cache.writeLocalList(response.hash, repository, branch, this.list[response.identifier]);
+      await this.cache.writeLocalList(response.hash, response.identifier, this.list[response.identifier]);
       this.hashes[response.identifier] = response.hash;
       return true;
     }
