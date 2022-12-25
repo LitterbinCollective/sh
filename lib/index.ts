@@ -48,29 +48,83 @@ export default class Chatsounds {
         return object.sha;
   }
 
-  public async useSourcesFromGitHubMsgPack(repository: string, branch: string, base: string) {
-    const identifier = repository + '#' + branch;
+  private async gitHubCacheSafetyCheck(repository: string, branch: string, base: string) {
+    const identifier = repository + '#' + branch + '/' + base;
     const hash = await this.getGitHubSHA(repository, branch);
-    const storedLocally = this.hashes[identifier] !== undefined;
-    if (storedLocally && this.hashes[identifier] === hash)
+    const storedInMemory = this.hashes[identifier] !== undefined;
+    if (storedInMemory && this.hashes[identifier] === hash)
       return false;
 
     let sounds = null,
       use = false;
 
-    if (!storedLocally) {
+    if (!storedInMemory) {
       const returned = await this.cache.compareLocalList(hash, repository, branch);
       sounds = returned.sounds;
       use = returned.use;
     }
 
-    if (use && sounds) {
-      this.list[identifier] = sounds;
-      return !storedLocally;
+    return { identifier, use, sounds, storedInMemory, hash };
+  }
+
+  public async useSourcesFromGitHub(repository: string, branch: string, base: string) {
+    const response = await this.gitHubCacheSafetyCheck(repository, branch, base);
+    if (!response || response.storedInMemory)
+      return false;
+
+    base = base.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const basePathRegex = new RegExp('^' + base, 'g');
+
+    if (response.use && response.sounds) {
+      this.list[response.identifier] = response.sounds;
+      this.hashes[response.identifier] = response.hash;
+      return true;
+    } else {
+      const { data } = await axios.get(`https://api.github.com/repos/${repository}/git/trees/${branch}?recursive=1`);
+      this.list[response.identifier] = {};
+
+      for (const fileData of data.tree)
+        if (fileData.path.endsWith('.ogg')) {
+          const path = fileData.path.replaceAll(basePathRegex, '');
+          const chunks = path.split('/');
+          const realm = chunks[1];
+          const sound = chunks[2]
+            .toLowerCase()
+            .replaceAll(OGG_FILE_EXTENSION_REGEX, '')
+            .replaceAll(UNDERSCORE_DASH_REGEX, ' ')
+            .replaceAll(REPEATED_SPACES_REGEX, ' ')
+            .trim();
+
+          if (sound.length > 0) {
+            if (this.list[response.identifier][sound] === undefined)
+              this.list[response.identifier][sound] = [];
+
+            this.list[response.identifier][sound].push({
+              realm,
+              url: `https://raw.githubusercontent.com/${repository}/${branch}/${fileData.path}`
+            });
+          }
+        }
+
+      await this.cache.writeLocalList(response.hash, repository, branch, this.list[response.identifier]);
+      this.hashes[response.identifier] = response.hash;
+      return true;
+    }
+  }
+
+  public async useSourcesFromGitHubMsgPack(repository: string, branch: string, base: string) {
+    const response = await this.gitHubCacheSafetyCheck(repository, branch, base);
+    if (!response || response.storedInMemory)
+      return false;
+
+    if (response.use && response.sounds) {
+      this.list[response.identifier] = response.sounds;
+      this.hashes[response.identifier] = response.hash;
+      return true;
     } else {
       const { data } = await axios.get(`https://raw.githubusercontent.com/${repository}/${branch}/${base}/list.msgpack`, { responseType: 'stream', });
       const generator = decodeArrayStream(data);
-      this.list[identifier] = {};
+      this.list[response.identifier] = {};
 
       for await (const data of generator) {
         let [ realm, sound, path ] = data as string[];
@@ -82,17 +136,18 @@ export default class Chatsounds {
           .replaceAll(REPEATED_SPACES_REGEX, ' ');
 
         if (sound.length > 0) {
-          if (this.list[identifier][sound] === undefined)
-            this.list[identifier][sound] = [];
+          if (this.list[response.identifier][sound] === undefined)
+            this.list[response.identifier][sound] = [];
 
-          this.list[identifier][sound].push({
+          this.list[response.identifier][sound].push({
             realm,
             url: `https://raw.githubusercontent.com/${repository}/${branch}/${base}/${path}`
           });
         }
       }
 
-      await this.cache.writeLocalList(hash, repository, branch, this.list[identifier]);
+      await this.cache.writeLocalList(response.hash, repository, branch, this.list[response.identifier]);
+      this.hashes[response.identifier] = response.hash;
       return true;
     }
   }

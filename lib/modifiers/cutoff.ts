@@ -6,7 +6,7 @@ export default class CutoffModifier extends BaseModifier {
 
   constructor(args: string[]) {
     super(args);
-    this.arguments[0] = 1 - Math.max(0, Math.min(100, +this.arguments[0])) / 100;
+    this.arguments[0] = Math.max(0, Math.min(100, +this.arguments[0])) / 100;
     this.checkNaNArguments(CutoffModifier);
   }
 

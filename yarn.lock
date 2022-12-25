@@ -24,6 +24,14 @@
   "resolved" "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.14.9.tgz"
   "version" "1.14.9"
 
+"speaker@file:../../AppData/Roaming/npm/node_modules/speaker":
+  "resolved" "file:../../AppData/Roaming/npm/node_modules/speaker"
+  "version" "0.5.4"
+  dependencies:
+    "bindings" "^1.3.0"
+    "buffer-alloc" "^1.1.0"
+    "debug" "^4.0.0"
+
 "typescript@^4.9.4":
   "integrity" "sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg=="
   "resolved" "https://registry.npmjs.org/typescript/-/typescript-4.9.4.tgz"
