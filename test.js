@@ -23,6 +23,7 @@ async function run(data) {
     sampleRate: 48000, // 48,000 Hz sample rate
   });
   speaker.on("end", () => speaker.close());
+  console.log(context.scope.children[0].children)
 
   const audio = await context.audio();
   audio.pipe(speaker);

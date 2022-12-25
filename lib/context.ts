@@ -53,6 +53,8 @@ export default class Context<T = Buffer | ReadableStream> {
         const sound = this.chatsounds.getRequiredSound(scope, last);
         last = sound;
 
+        if (!sound) return;
+
         // if parser found it, this should be able to too
         return this.chatsounds.cache.getSound((sound as Chatsound).url);
       })
@@ -62,13 +64,17 @@ export default class Context<T = Buffer | ReadableStream> {
     const filterComplex: string[] = [];
     const delayFilters = [];
     let time = 0;
+    let soundCount = 0;
     for (let i = 0; i < this.flattened.length; i++) {
+      const path = paths[i];
+      if (!path)
+        continue;
       const scope = this.flattened[i];
       const modifiers = scope.modifiers
         .sort((a, b) => (b.modifier?.priority || 0) - (a.modifier?.priority || 0));
 
-      let output = named[i] = i + ':a';
-      let duration = await this.chatsounds.cache.getDuration(paths[i]) * 1000;
+      let output = named[i] = soundCount + ':a';
+      let duration = await this.chatsounds.cache.getDuration(path) * 1000;
       const stack: Record<string, number> = {};
       for (const modifierWrapper of modifiers) {
         const modifier = modifierWrapper.modifier as BaseModifier;
@@ -104,19 +110,24 @@ export default class Context<T = Buffer | ReadableStream> {
       named[i] = delayedOutput;
 
       time += duration;
+      soundCount++;
     }
+
+    const filteredPaths = paths.filter((x): x is string => x !== undefined);
 
     const filterComplexArgument =[
       delayFilters.join(';'),
       named.reduce((p, c) => p += '[' + c + ']', '')
-        + `amix=inputs=${this.flattened.length}:dropout_transition=0:normalize=0[outa]`
+        + `amix=inputs=${filteredPaths.length}:dropout_transition=0:normalize=0[outa]`
     ];
 
     if (filterComplex.length !== 0)
       filterComplexArgument.unshift(filterComplex.join(';'));
 
     const args = [
-      ...paths.map(path => [ '-i', path ]).flat(),
+      ...filteredPaths
+        .map(path => [ '-i', path ])
+        .flat(),
       '-filter_complex', filterComplexArgument.join(';'),
       '-map', '[outa]',
       '-f', 's16le',

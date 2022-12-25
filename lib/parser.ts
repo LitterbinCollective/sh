@@ -109,7 +109,7 @@ export class Scope {
 
             const chunk = this.text.substring(relativeStart, i + 1).trim();
             if (chunk.length >= 0 && this.parser.chatsounds.lookup[chunk]) {
-              const pos = input.indexOf(chunk, this.currentIndex);
+              const pos = input.indexOf(chunk, this.currentIndex + relativeStart);
               const scope = new Scope({
                 endIndex: pos + chunk.length,
                 parent: this,
@@ -226,7 +226,6 @@ export default class Parser {
           break;
         case ':':
           const modifier = current.text.split(REPEATED_SPACES_REGEX, 1)[0];
-          let modifierInstance;
 
           const selected = this.chatsounds.modifiers[modifier];
           if (selected) {
@@ -253,25 +252,24 @@ export default class Parser {
             } else
               endIndex = i + modifier.length;
 
-            modifierInstance = new Scope({
+            const modifierInstance = new Scope({
               endIndex,
               modifier: new selected(args),
               parser: this,
               text: '',
               type: SCOPE_TYPE_MISC
             });
-          }
 
-          if (modifierInstance !== undefined)
             collectedModifiers.unshift(modifierInstance);
+            const space = current.text.search(REPEATED_SPACES_REGEX);
+            if (space !== -1)
+              current.text = current.text.substring(space).trim();
+            else
+              current.text = '';
 
-          const space = current.text.search(REPEATED_SPACES_REGEX);
-          if (space !== -1)
-            current.text = current.text.substring(space).trim();
-          else
-            current.text = '';
-
-          collectedModifiers = current.parseSounds(input, collectedModifiers);
+            current.currentIndex = endIndex
+            collectedModifiers = current.parseSounds(input, collectedModifiers);
+          }
           break;
         default:
           current.text = character + current.text;

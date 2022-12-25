@@ -6,7 +6,7 @@ export default class VolumeModifier extends BaseModifier {
 
   constructor(args: string[]) {
     super(args);
-    this.arguments[0] = Math.max(0, Math.min(1, +this.arguments[0]));
+    this.arguments[0] = Math.max(0, +this.arguments[0]);
     this.checkNaNArguments(VolumeModifier);
   }
 
