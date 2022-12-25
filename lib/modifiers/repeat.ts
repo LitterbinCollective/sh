@@ -19,7 +19,7 @@ export default class RepeatModifier extends BaseModifier {
   }
 
   public modifyDuration(duration: number) {
-    return duration * this.arguments[0];
+    return duration * (this.arguments[0] + 1);
   }
 
   public filterTemplate(duration: number) {
