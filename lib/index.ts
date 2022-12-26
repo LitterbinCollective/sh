@@ -252,7 +252,7 @@ export default class Chatsounds {
           urls[chatsound.url] = true;
         }
 
-        this.lookup[name].sort((a, b) => a.url.length - b.url.length);
+        this.lookup[name].sort((a, b) => a.url.localeCompare(b.url));
       }
     }
   }
