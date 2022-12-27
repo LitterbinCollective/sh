@@ -3,8 +3,10 @@ import { spawn } from 'child_process';
 import { createHash } from 'crypto';
 import { existsSync, promises, readFileSync } from 'fs';
 import { join } from 'path';
+import internal = require('stream');
 
 import { Chatsound } from '.';
+import { OUTPUT_AUDIO_CHANNELS, OUTPUT_SAMPLE_RATE } from './constants';
 
 const SOUNDS_CACHE_DIRECTORY = 'sounds/';
 const SOURCES_CACHE_DIRECTORY = 'sources/';
@@ -96,14 +98,41 @@ export default class CacheManager {
     return duration;
   }
 
+  private convertToSuitableFormat(stream: internal.Readable) {
+    return new Promise<Buffer>(res => {
+      const child = spawn('ffmpeg', [
+        '-i', '-',
+        '-ac', OUTPUT_AUDIO_CHANNELS.toString(),
+        '-ar', OUTPUT_SAMPLE_RATE.toString(),
+        '-c:a', 'libvorbis',
+        '-f', 'ogg',
+        '-'
+      ]);
+
+      child.stderr.on('data', (x) => console.log(x.toString()));
+
+      stream.pipe(child.stdin);
+
+      let buffer = Buffer.alloc(0);
+      child.stdout.on('data', data => {
+        buffer = Buffer.concat([buffer, data]);
+      });
+
+      child.stdout.on('end', () =>
+        res(buffer)
+      );
+    });
+  }
+
   public async getSound(url: string) {
     await this.createNeededDirectories();
 
     const path = this.getCachedSoundFilename(url);
 
     if (!existsSync(path)) {
-      const { data } = await axios.get(url, { responseType: 'arraybuffer' });
-      await promises.writeFile(path, data);
+      const { data } = await axios.get(url, { responseType: 'stream' });
+      const buffer = await this.convertToSuitableFormat(data);
+      await promises.writeFile(path, buffer);
     }
 
     return path;

@@ -73,6 +73,7 @@ export default class Context<T = Buffer | ReadableStream> {
       let output = (named[i] = soundCount + ':a');
       let duration = (await this.chatsounds.cache.getDuration(path)) * 1000;
       const stack: Record<string, number> = {};
+      const locals = new Map<string, any>();
       for (const modifierWrapper of modifiers) {
         const modifier = modifierWrapper.modifier as BaseModifier;
         const { name: className } = modifier.constructor;
@@ -84,7 +85,7 @@ export default class Context<T = Buffer | ReadableStream> {
         stack[className]++;
 
         const names = [named[i]];
-        const template = modifier.filterTemplate(duration);
+        const template = modifier.filterTemplate(duration, locals);
         if (template)
           filterComplex.push(
             template.replace(TEMPLATE_REGEX, (_match, number) => {

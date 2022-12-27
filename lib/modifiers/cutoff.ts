@@ -14,7 +14,11 @@ export default class CutoffModifier extends BaseModifier {
     return duration * this.arguments[0];
   }
 
-  public filterTemplate(duration: number) {
-    return `[{0}]atrim=start=0:end=${duration * this.arguments[0]}ms[{1}]`;
+  public filterTemplate(duration: number, locals: Map<string, any>) {
+    const start = locals.has('atrim-start') ? locals.get('atrim-start') : 0;
+    const end = start + duration * this.arguments[0];
+    locals.set('atrim-start', start);
+    locals.set('atrim-end', end);
+    return `[{0}]atrim=start=${start}ms:end=${end}ms[{1}]`;
   }
 }

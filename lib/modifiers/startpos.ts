@@ -14,9 +14,11 @@ export default class StartposModifier extends BaseModifier {
     return duration - duration * this.arguments[0];
   }
 
-  public filterTemplate(duration: number) {
-    return `[{0}]atrim=start=${
-      duration * this.arguments[0]
-    }ms:end=${duration}ms[{1}]`;
+  public filterTemplate(duration: number, locals: Map<string, any>) {
+    const start = locals.has('atrim-start') ? locals.get('atrim-start') : 0 + duration * this.arguments[0];
+    const end = locals.has('atrim-end') ? locals.get('atrim-end') : duration;
+    locals.set('atrim-start', start);
+    locals.set('atrim-end', end);
+    return `[{0}]atrim=start=${start}ms:end=${end}ms[{1}]`;
   }
 }

@@ -29,7 +29,7 @@ export default class BaseModifier {
     return duration;
   }
 
-  public filterTemplate(duration: number): string | false {
+  public filterTemplate(duration: number, locals: Map<string, any>): string | false {
     return false;
   }
 }
