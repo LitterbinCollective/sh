@@ -7,7 +7,7 @@ export default class SelectModifier extends BaseModifier {
 
   constructor(args: string[]) {
     super(args);
-    this.arguments[0] = +this.arguments[0];
+    this.arguments[0] = +this.arguments[0] - 1;
     this.checkNaNArguments(SelectModifier);
   }
 
