@@ -12,6 +12,6 @@ export default class DurationModifier extends BaseModifier {
   }
 
   public modifyDuration(_: number): number {
-    return this.arguments[0];
+    return this.arguments[0] * 1000;
   }
 }
