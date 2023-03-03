@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { Readable } from 'stream';
 import { decodeArrayStream } from '@msgpack/msgpack';
 
@@ -24,13 +24,37 @@ export interface Chatsound {
   realm: string;
 }
 
+interface ChatsoundsOptions {
+  modifiers?: Record<string, typeof basemodifier>,
+  gitHubToken?: string
+}
+
 export default class Chatsounds {
   public cache: CacheManager = new CacheManager('cache/');
   public list: Record<string, Record<string, Chatsound[]>> = {};
   public lookup: Record<string, Chatsound[]> = {};
   public parser: Parser = new Parser(this);
   public modifiers: Record<string, typeof basemodifier> = {};
+  private axios: AxiosInstance;
   private hashes: Record<string, string> = {};
+
+  constructor(options?: ChatsoundsOptions) {
+    let axiosOptions: AxiosRequestConfig<any> | undefined;
+    
+    if (options) {
+      if (options.modifiers)
+        this.modifiers = options.modifiers;
+
+      if (options.gitHubToken)
+        axiosOptions = {
+          headers: {
+            Authorization: 'Bearer ' + options.gitHubToken
+          }
+        };
+    }
+
+    this.axios = axios.create(axiosOptions);
+  }
 
   public useModifiers(modifiers: Record<string, typeof basemodifier>) {
     for (const modifier in modifiers) {
@@ -40,7 +64,7 @@ export default class Chatsounds {
   }
 
   private async getGitHubSHA(repository: string, branch: string) {
-    const { data } = await axios.get(
+    const { data } = await this.axios.get(
       `https://api.github.com/repos/${repository}/git/refs`
     );
     const search = 'refs/heads/' + branch;
@@ -54,8 +78,7 @@ export default class Chatsounds {
   ) {
     const identifier = repository + '#' + branch + '/' + base;
     const hash = await this.getGitHubSHA(repository, branch);
-    const storedInMemory = this.hashes[identifier] !== undefined;
-    if (storedInMemory && this.hashes[identifier] === hash) return false;
+    const storedInMemory = this.hashes[identifier] === hash;
 
     let sounds = null,
       use = false;
@@ -79,7 +102,7 @@ export default class Chatsounds {
       branch,
       base
     );
-    if (!response || response.storedInMemory) return false;
+    if (!response.storedInMemory) return false;
 
     base = base.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const basePathRegex = new RegExp('^' + base, 'g');
@@ -89,7 +112,7 @@ export default class Chatsounds {
       this.hashes[response.identifier] = response.hash;
       return true;
     } else {
-      const { data } = await axios.get(
+      const { data } = await this.axios.get(
         `https://api.github.com/repos/${repository}/git/trees/${branch}?recursive=1`
       );
       this.list[response.identifier] = {};
@@ -137,7 +160,7 @@ export default class Chatsounds {
       branch,
       base
     );
-    if (!response || response.storedInMemory) return false;
+    if (!response.storedInMemory) return false;
 
     if (response.use && response.sounds) {
       this.list[response.identifier] = response.sounds;
