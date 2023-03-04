@@ -102,7 +102,7 @@ export default class Chatsounds {
       branch,
       base
     );
-    if (!response.storedInMemory) return false;
+    if (response.storedInMemory) return false;
 
     base = base.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const basePathRegex = new RegExp('^' + base, 'g');
@@ -160,7 +160,7 @@ export default class Chatsounds {
       branch,
       base
     );
-    if (!response.storedInMemory) return false;
+    if (response.storedInMemory) return false;
 
     if (response.use && response.sounds) {
       this.list[response.identifier] = response.sounds;

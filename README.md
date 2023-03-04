@@ -28,6 +28,11 @@ const sh = new Chatsounds();
 (async function() {
   // set it up first
   sh.useModifiers(defaultModifiers);
+
+  /*
+    if this function or useSourcesFromGitHub returns false, this means that
+    the listing for it was stored in the memory and did not need to be refreshed
+  */
   await sh.useSourcesFromGitHubMsgPack("PAC3-Server/chatsounds-valve-games", "master", "csgo");
   sh.mergeSources();
 
