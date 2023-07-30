@@ -118,11 +118,19 @@ export default class Chatsounds {
       this.list[response.identifier] = {};
 
       for (const fileData of data.tree)
+        // valorant/sage/!cant use this yet.ogg
+        // ssbb_sonic/sonicfx/....ogg
         if (fileData.path.endsWith('.ogg')) {
           const path = fileData.path.replaceAll(basePathRegex, '');
           const chunks = path.split('/');
           const realm = chunks[1];
-          const sound = chunks[2]
+          let sound = chunks[2];
+
+          // this signals to use the file name instead of the folder's name, which is located in the realm
+          if (chunks[chunks.length - 1].startsWith('!'))
+            sound = chunks[chunks.length - 1].slice(1);
+
+          sound = sound
             .toLowerCase()
             .replaceAll(OGG_FILE_EXTENSION_REGEX, '')
             .replaceAll(UNDERSCORE_DASH_REGEX, ' ')
