@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 
 import Chatsounds, { Chatsound } from '.';
 import {
+  AUDIO_BUFFER_TIMEOUT_MS,
   FILTER_NAME_LENGTH,
   MUTE_CHATSOUND,
   OUTPUT_AUDIO_CHANNELS,
@@ -146,13 +147,26 @@ export default class Context<T = Buffer | ReadableStream> {
       case TYPE_BUFFER: {
         const child = await this.prepare();
         if (!child) return null;
-        return await new Promise<T>(res => {
+        return await new Promise<T>((res, rej) => {
+          const timeout = setTimeout(
+            () => {
+              if (!child.killed)
+                child.kill();
+              rej('timeout');
+            },
+            AUDIO_BUFFER_TIMEOUT_MS
+          );
           let buffer = Buffer.alloc(0);
+
           child.stdout.on(
             'data',
             data => (buffer = Buffer.concat([buffer, data]))
           );
-          child.stdout.on('end', () => res(buffer as T));
+
+          child.stdout.on('end', () => {
+            res(buffer as T);
+            clearTimeout(timeout);
+          });
         });
       }
       case TYPE_STREAM: {

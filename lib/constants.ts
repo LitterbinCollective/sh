@@ -3,6 +3,7 @@ export const REPEATED_SPACES_REGEX = /\s+/g;
 export const TEMPLATE_REGEX = /{(\d+)}/g;
 export const OGG_FILE_EXTENSION_REGEX = /\.ogg$/g;
 
+export const AUDIO_BUFFER_TIMEOUT_MS = 30000;
 export const TYPE_BUFFER = 'buffer';
 export const TYPE_STREAM = 'stream';
 
