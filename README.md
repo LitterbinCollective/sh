@@ -1,4 +1,4 @@
-# sh <img align="right" width="100" src="https://litterbin.dev/media/sh.png">
+# sh
 A Chatsounds processor written in TypeScript. It can not be accurate.
 
 ## Prerequisites
