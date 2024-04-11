@@ -1,4 +1,4 @@
-import { OUTPUT_SAMPLE_RATE } from '../constants';
+import { CACHE_SAMPLE_RATE } from '../utils';
 import BaseModifier from './basemodifier';
 
 export default class PitchModifier extends BaseModifier {
@@ -28,7 +28,7 @@ export default class PitchModifier extends BaseModifier {
 
     const suffix = pitch < 0 ? ',areverse' : '';
     return (
-      `[{0}]asetrate=${OUTPUT_SAMPLE_RATE * Math.abs(pitch)}` + suffix + '[{1}]'
+      `[{0}]asetrate=${CACHE_SAMPLE_RATE * Math.abs(pitch)}` + suffix + '[{1}]'
     );
   }
 }

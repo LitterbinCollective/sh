@@ -8,15 +8,8 @@ Download FFmpeg and place the folder with it in the PATH environment variable.
 Run `npm install github:NonagonNetwork/sh` to install.
 
 ## Limitations
-*(also laziness)*
-
-### FFmpeg
 Since the package is using FFmpeg, some features that are included in the Garry's
 Mod versions of Chatsounds do not exist or are limited.
-
-### Output
-sh is hard-coded to export signed 16-bit little-endian PCM stereo audio with
-the sample rate of 48000 Hz, meaning it is impossible to change the output format.
 
 ## Examples
 
@@ -40,12 +33,20 @@ const sh = new Chatsounds();
 
   // stream format
   const context = sh.newStream('endmatch itemrevealraritycommon:echo');
-  const stream = await context.audio();
+  const audio = await context.audio({
+    sampleRate: 48000,
+    audioChannels: 2,
+    format: 's16le'
+  });
   // [...]
 
   // buffer format
   const context2 = sh.newBuffer('endmatch itemrevealraritycommon:echo');
-  const buffer = await context2.audio();
+  const audio = await context.audio({
+    sampleRate: 48000,
+    audioChannels: 2,
+    format: 's16le'
+  });
   // [...]
 })();
 ```

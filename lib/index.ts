@@ -1,77 +1,64 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { Readable } from 'stream';
 import { decodeArrayStream } from '@msgpack/msgpack';
 
 import CacheManager from './cache';
 import {
+  Chatsound,
+  ChatsoundsOptions,
+  ContextReturnValueTypes,
   MUTE_CHATSOUND,
   OGG_FILE_EXTENSION_REGEX,
   REPEATED_SPACES_REGEX,
   SCOPE_TYPE_SOUND,
-  TYPE_BUFFER,
-  TYPE_STREAM,
   UNDERSCORE_DASH_REGEX,
-} from './constants';
+} from './utils';
 import Context from './context';
-import { BaseModifier as basemodifier } from './modifiers';
+import { BaseModifier } from './modifiers';
 import Parser, { Scope } from './parser';
 
-export const BaseModifier = basemodifier;
-export { defaultModifiers } from './modifiers';
-
-export interface Chatsound {
-  url: string;
-  realm: string;
-}
-
-interface ChatsoundsOptions {
-  modifiers?: Record<string, typeof basemodifier>,
-  gitHubToken?: string
-}
+export * from './modifiers';
 
 export default class Chatsounds {
   public cache: CacheManager = new CacheManager('cache/');
   public list: Record<string, Record<string, Chatsound[]>> = {};
   public lookup: Record<string, Chatsound[]> = {};
   public parser: Parser = new Parser(this);
-  public modifiers: Record<string, typeof basemodifier> = {};
-  private axios: AxiosInstance;
+  public modifiers: Record<string, typeof BaseModifier> = {};
+  private headers = {};
   private hashes: Record<string, string> = {};
 
   constructor(options?: ChatsoundsOptions) {
-    let axiosOptions: AxiosRequestConfig<any> | undefined;
-    
     if (options) {
       if (options.modifiers)
         this.modifiers = options.modifiers;
 
       if (options.gitHubToken)
-        axiosOptions = {
-          headers: {
-            Authorization: 'Bearer ' + options.gitHubToken
-          }
+        this.headers = {
+          Authorization: 'Bearer ' + options.gitHubToken
         };
     }
-
-    this.axios = axios.create(axiosOptions);
   }
 
-  public useModifiers(modifiers: Record<string, typeof basemodifier>) {
+  public useModifiers(modifiers: Record<string, typeof BaseModifier>) {
     for (const modifier in modifiers) {
       if (this.modifiers[modifier]) continue;
       this.modifiers[modifier] = modifiers[modifier];
     }
   }
 
+  private async fetchGitHub(path: string) {
+    const res = await fetch('https://api.github.com' + path, { headers: this.headers });
+    if (!res.ok)
+      throw new Error('github api not ok, path used: ' + path);
+    return await res.json();
+  }
+
   private async getGitHubSHA(repository: string, branch: string) {
-    const { data } = await this.axios.get(
-      `https://api.github.com/repos/${repository}/git/refs`
-    );
+    const data = await this.fetchGitHub(`/repos/${repository}/git/refs`);
     const search = 'refs/heads/' + branch;
     for (const { ref, object } of data) if (ref === search) return object.sha;
   }
 
-  private async gitHubCacheSafetyCheck(
+  private async checkGitHubCache(
     repository: string,
     branch: string,
     base: string
@@ -97,7 +84,7 @@ export default class Chatsounds {
     branch: string,
     base: string
   ) {
-    const response = await this.gitHubCacheSafetyCheck(
+    const response = await this.checkGitHubCache(
       repository,
       branch,
       base
@@ -112,9 +99,7 @@ export default class Chatsounds {
       this.hashes[response.identifier] = response.hash;
       return true;
     } else {
-      const { data } = await this.axios.get(
-        `https://api.github.com/repos/${repository}/git/trees/${branch}?recursive=1`
-      );
+      const data = await this.fetchGitHub(`/repos/${repository}/git/trees/${branch}?recursive=1`);
       this.list[response.identifier] = {};
 
       for (const fileData of data.tree)
@@ -163,7 +148,7 @@ export default class Chatsounds {
     branch: string,
     base: string
   ) {
-    const response = await this.gitHubCacheSafetyCheck(
+    const response = await this.checkGitHubCache(
       repository,
       branch,
       base
@@ -175,11 +160,13 @@ export default class Chatsounds {
       this.hashes[response.identifier] = response.hash;
       return true;
     } else {
-      const { data } = await axios.get(
+      const res = await fetch(
         `https://raw.githubusercontent.com/${repository}/${branch}/${base}/list.msgpack`,
-        { responseType: 'stream' }
       );
-      const generator = decodeArrayStream(data);
+      if (!res.ok || !res.body)
+        throw new Error('githubusercontent not ok');
+
+      const generator = decodeArrayStream(res.body);
       this.list[response.identifier] = {};
 
       for await (const data of generator) {
@@ -255,12 +242,8 @@ export default class Chatsounds {
     return matches[index];
   }
 
-  public newBuffer(input: string): Context<Buffer> {
-    return new Context<Buffer>(this, input, TYPE_BUFFER);
-  }
-
-  public newStream(input: string): Context<Readable> {
-    return new Context<Readable>(this, input, TYPE_STREAM);
+  public new<T extends keyof ContextReturnValueTypes>(type: T, script: string) {
+    return new Context<T>(this, script, type);
   }
 
   public mergeSources() {

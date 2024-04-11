@@ -5,7 +5,7 @@ import {
   SCOPE_TYPE_MISC,
   SCOPE_TYPE_MODIFIER_EXPRESSION,
   SCOPE_TYPE_SOUND,
-} from './constants';
+} from './utils';
 import { BaseModifier } from './modifiers';
 
 interface ScopeOptions {
@@ -19,6 +19,7 @@ interface ScopeOptions {
   type: 'group' | 'sound' | 'modifier_expression' | 'misc';
 }
 
+// TODO: Scope looks ugly!!
 export class Scope {
   public children: Scope[] = [];
   public currentIndex = 0;

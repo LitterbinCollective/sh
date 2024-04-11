@@ -1,20 +1,16 @@
-import axios from 'axios';
 import { spawn } from 'child_process';
 import { createHash } from 'crypto';
 import { existsSync, promises, readFileSync } from 'fs';
 import { join } from 'path';
-import internal = require('stream');
 
-import { Chatsound } from '.';
-import { OUTPUT_AUDIO_CHANNELS, OUTPUT_SAMPLE_RATE } from './constants';
-
-const SOUNDS_CACHE_DIRECTORY = 'sounds/';
-const SOURCES_CACHE_DIRECTORY = 'sources/';
-
-interface CachedSource {
-  hash: string;
-  sounds: Record<string, Chatsound[]>;
-}
+import {
+  CACHE_AUDIO_CHANNELS,
+  CACHE_SAMPLE_RATE,
+  CachedSource,
+  Chatsound,
+  SOUNDS_CACHE_DIRECTORY,
+  SOURCES_CACHE_DIRECTORY
+} from './utils';
 
 export default class CacheManager {
   public directory;
@@ -90,7 +86,7 @@ export default class CacheManager {
     });
 
     // motherfucker
-    (this.durations[path] as any) = duration;
+    this.durations[path] = duration;
     await promises.appendFile(
       this.cachedDurationsFile,
       '\n' + path + '\0' + duration
@@ -98,20 +94,18 @@ export default class CacheManager {
     return duration;
   }
 
-  private convertToSuitableFormat(stream: internal.Readable) {
+  private convertToSuitableFormat(url: string) {
     return new Promise<Buffer>(res => {
       const child = spawn('ffmpeg', [
-        '-i', '-',
-        '-ac', OUTPUT_AUDIO_CHANNELS.toString(),
-        '-ar', OUTPUT_SAMPLE_RATE.toString(),
+        '-i', url,
+        '-ac', CACHE_AUDIO_CHANNELS.toString(),
+        '-ar', CACHE_SAMPLE_RATE.toString(),
         '-c:a', 'libvorbis',
         '-f', 'ogg',
         '-'
       ]);
 
-      child.stderr.on('data', (x) => console.log(x.toString()));
-
-      stream.pipe(child.stdin);
+      // child.stderr.on('data', (x) => console.log(x.toString()));
 
       let buffer = Buffer.alloc(0);
       child.stdout.on('data', data => {
@@ -130,8 +124,7 @@ export default class CacheManager {
     const path = this.getCachedSoundFilename(url);
 
     if (!existsSync(path)) {
-      const { data } = await axios.get(url, { responseType: 'stream' });
-      const buffer = await this.convertToSuitableFormat(data);
+      const buffer = await this.convertToSuitableFormat(url);
       await promises.writeFile(path, buffer);
     }
 

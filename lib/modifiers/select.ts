@@ -1,4 +1,4 @@
-import { Chatsound } from '..';
+import { Chatsound } from '../utils';
 import BaseModifier from './basemodifier';
 
 export default class SelectModifier extends BaseModifier {

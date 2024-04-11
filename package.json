@@ -1,12 +1,14 @@
 {
   "name": "sh",
   "version": "1.0.0",
-  "description": "A JS soundboard module.",
+  "description": "JavaScript soundboard library.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [ "/dist" ],
+  "files": [
+    "/dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node test.js",
     "build": "tsc",
     "prepublish": "npm run build"
   },
@@ -14,15 +16,14 @@
     "type": "git",
     "url": "git+https://github.com/NonagonNetwork/sh.git"
   },
-  "author": "NonagonNetwork",
+  "author": "LitterbinCollective",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/NonagonNetwork/sh/issues"
   },
   "homepage": "https://github.com/NonagonNetwork/sh#readme",
   "dependencies": {
-    "@msgpack/msgpack": "^2.8.0",
-    "axios": "^0.26.0"
+    "@msgpack/msgpack": "^2.8.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.17",

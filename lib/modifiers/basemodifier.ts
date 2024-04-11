@@ -1,4 +1,4 @@
-import { Chatsound } from '..';
+import { Chatsound } from '../utils';
 
 export default class BaseModifier {
   public arguments: any[] = [];

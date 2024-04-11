@@ -1,27 +1,28 @@
 import { spawn } from 'child_process';
 
-import Chatsounds, { Chatsound } from '.';
+import Chatsounds from '.';
 import {
   AUDIO_BUFFER_TIMEOUT_MS,
+  AudioSettings,
+  ContextReturnValueTypes,
   FILTER_NAME_LENGTH,
   MUTE_CHATSOUND,
-  OUTPUT_AUDIO_CHANNELS,
-  OUTPUT_SAMPLE_RATE,
+  CACHE_AUDIO_CHANNELS,
+  CACHE_SAMPLE_RATE,
   TEMPLATE_REGEX,
-  TYPE_BUFFER,
-  TYPE_STREAM,
-} from './constants';
+  Chatsound,
+} from './utils';
 import { BaseModifier } from './modifiers';
 import { Scope } from './parser';
 
-export default class Context<T = Buffer | ReadableStream> {
+export default class Context<T extends keyof ContextReturnValueTypes> {
   private scope: Scope;
   private _flattened?: Scope[];
   private _mute?: boolean;
   private readonly chatsounds;
-  private readonly type;
+  private readonly type: T;
 
-  constructor(chatsounds: Chatsounds, input: string, type: string) {
+  constructor(chatsounds: Chatsounds, input: string, type: T) {
     this.chatsounds = chatsounds;
     this.scope = this.chatsounds.parser.parse(input);
     this.type = type;
@@ -42,7 +43,7 @@ export default class Context<T = Buffer | ReadableStream> {
     return (this._mute = false);
   }
 
-  private async prepare() {
+  private async prepare(settings: AudioSettings) {
     if (!this.flattened || this.flattened.length === 0) return;
     let last: Chatsound | undefined;
 
@@ -124,30 +125,37 @@ export default class Context<T = Buffer | ReadableStream> {
     if (filterComplex.length !== 0)
       filterComplexArgument.unshift(filterComplex.join(';'));
 
-    const args = [
+    let args = [
       ...filteredPaths.map(path => ['-i', path]).flat(),
       '-filter_complex',
       filterComplexArgument.join(';'),
       '-map',
       '[outa]',
-      '-f',
-      's16le',
-      '-ar',
-      OUTPUT_SAMPLE_RATE.toString(),
-      '-ac',
-      OUTPUT_AUDIO_CHANNELS.toString(),
-      '-',
     ];
+
+    if (settings.codec)
+      args.push('-c:a', settings.codec);
+
+    args = args.concat(
+      '-f',
+      settings.format,
+      '-ar',
+      String(settings.sampleRate),
+      '-ac',
+      String(settings.audioChannels),
+      '-'
+    );
 
     return spawn('ffmpeg', args);
   }
 
-  public async audio(): Promise<T | null> {
+  public async audio(settings: AudioSettings): Promise<ContextReturnValueTypes[T] | null> {
+    const child = await this.prepare(settings);
+    if (!child) return null;
+
     switch (this.type) {
-      case TYPE_BUFFER: {
-        const child = await this.prepare();
-        if (!child) return null;
-        return await new Promise<T>((res, rej) => {
+      case 'buffer':
+        return await new Promise<Buffer>((res, rej) => {
           const timeout = setTimeout(
             () => {
               if (!child.killed)
@@ -164,16 +172,12 @@ export default class Context<T = Buffer | ReadableStream> {
           );
 
           child.stdout.on('end', () => {
-            res(buffer as T);
+            res(buffer);
             clearTimeout(timeout);
           });
-        });
-      }
-      case TYPE_STREAM: {
-        const child = await this.prepare();
-        if (!child) return null;
-        return child.stdout as T;
-      }
+        }) as ContextReturnValueTypes[T];
+      case 'stream':
+        return child.stdout as ContextReturnValueTypes[T];
       default:
         return null;
     }

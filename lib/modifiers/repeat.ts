@@ -1,4 +1,4 @@
-import { OUTPUT_SAMPLE_RATE } from '../constants';
+import { CACHE_SAMPLE_RATE } from '../utils';
 import BaseModifier from './basemodifier';
 
 /*
@@ -23,7 +23,7 @@ export default class RepeatModifier extends BaseModifier {
   }
 
   public filterTemplate(duration: number) {
-    const size = (OUTPUT_SAMPLE_RATE / 1000) * duration;
+    const size = (CACHE_SAMPLE_RATE / 1000) * duration;
     return `[{0}]aloop=loop=${this.arguments[0]}:size=${size}[{1}]`;
   }
 }
