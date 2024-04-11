@@ -29,11 +29,6 @@ export interface CachedSource {
   sounds: Record<string, Chatsound[]>;
 }
 
-export interface ContextReturnValueTypes {
-  buffer: Buffer;
-  stream: Readable;
-}
-
 export interface AudioSettings {
   sampleRate: number;
   audioChannels: number;

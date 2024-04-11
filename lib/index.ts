@@ -4,7 +4,6 @@ import CacheManager from './cache';
 import {
   Chatsound,
   ChatsoundsOptions,
-  ContextReturnValueTypes,
   MUTE_CHATSOUND,
   OGG_FILE_EXTENSION_REGEX,
   REPEATED_SPACES_REGEX,
@@ -242,8 +241,8 @@ export default class Chatsounds {
     return matches[index];
   }
 
-  public new<T extends keyof ContextReturnValueTypes>(type: T, script: string) {
-    return new Context<T>(this, script, type);
+  public new(script: string) {
+    return new Context(this, script);
   }
 
   public mergeSources() {

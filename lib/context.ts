@@ -2,30 +2,24 @@ import { spawn } from 'child_process';
 
 import Chatsounds from '.';
 import {
-  AUDIO_BUFFER_TIMEOUT_MS,
   AudioSettings,
-  ContextReturnValueTypes,
   FILTER_NAME_LENGTH,
   MUTE_CHATSOUND,
-  CACHE_AUDIO_CHANNELS,
-  CACHE_SAMPLE_RATE,
   TEMPLATE_REGEX,
   Chatsound,
 } from './utils';
 import { BaseModifier } from './modifiers';
 import { Scope } from './parser';
 
-export default class Context<T extends keyof ContextReturnValueTypes> {
+export default class Context {
   private scope: Scope;
   private _flattened?: Scope[];
   private _mute?: boolean;
   private readonly chatsounds;
-  private readonly type: T;
 
-  constructor(chatsounds: Chatsounds, input: string, type: T) {
+  constructor(chatsounds: Chatsounds, input: string) {
     this.chatsounds = chatsounds;
     this.scope = this.chatsounds.parser.parse(input);
-    this.type = type;
   }
 
   private get flattened() {
@@ -149,37 +143,27 @@ export default class Context<T extends keyof ContextReturnValueTypes> {
     return spawn('ffmpeg', args);
   }
 
-  public async audio(settings: AudioSettings): Promise<ContextReturnValueTypes[T] | null> {
+  public async stream(settings: AudioSettings) {
     const child = await this.prepare(settings);
     if (!child) return null;
 
-    switch (this.type) {
-      case 'buffer':
-        return await new Promise<Buffer>((res, rej) => {
-          const timeout = setTimeout(
-            () => {
-              if (!child.killed)
-                child.kill();
-              rej('timeout');
-            },
-            AUDIO_BUFFER_TIMEOUT_MS
-          );
-          let buffer = Buffer.alloc(0);
+    return child.stdout;
+  }
 
-          child.stdout.on(
-            'data',
-            data => (buffer = Buffer.concat([buffer, data]))
-          );
+  public async buffer(settings: AudioSettings) {
+    const stream = await this.stream(settings);
+    if (!stream) return null;
 
-          child.stdout.on('end', () => {
-            res(buffer);
-            clearTimeout(timeout);
-          });
-        }) as ContextReturnValueTypes[T];
-      case 'stream':
-        return child.stdout as ContextReturnValueTypes[T];
-      default:
-        return null;
-    }
+    return await new Promise<Buffer>(res => {
+      let buffer = Buffer.alloc(0);
+
+      stream.on('data', data =>
+          (buffer = Buffer.concat([buffer, data]))
+      );
+
+      stream.on('end', () =>
+        res(buffer)
+      );
+    })
   }
 }
