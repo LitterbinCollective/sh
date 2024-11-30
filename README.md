@@ -15,7 +15,7 @@ Mod versions of Chatsounds do not exist or are limited.
 
 ### JavaScript
 ```js
-const { default: Chatsounds, defaultModifiers } = require("sh");
+const { default: Chatsounds, defaultModifiers } = require('sh');
 
 const sh = new Chatsounds();
 (async function() {
@@ -26,14 +26,14 @@ const sh = new Chatsounds();
     if this function or useSourcesFromGitHub returns false, this means that
     the listing for it was stored in the memory and did not need to be refreshed
   */
-  await sh.useSourcesFromGitHubMsgPack("PAC3-Server/chatsounds-valve-games", "master", "csgo");
+  await sh.useSourcesFromGitHubMsgPack('PAC3-Server/chatsounds-valve-games', 'master', 'csgo');
   sh.mergeSources();
 
   // go wacky
 
   // stream format
-  const context = sh.newStream('endmatch itemrevealraritycommon:echo');
-  const audio = await context.audio({
+  const context = sh.new('endmatch itemrevealraritycommon:echo');
+  const audio = await context.stream({
     sampleRate: 48000,
     audioChannels: 2,
     format: 's16le'
@@ -41,8 +41,8 @@ const sh = new Chatsounds();
   // [...]
 
   // buffer format
-  const context2 = sh.newBuffer('endmatch itemrevealraritycommon:echo');
-  const audio = await context.audio({
+  const context2 = sh.new('endmatch itemrevealraritycommon:echo');
+  const audio = await context.buffer({
     sampleRate: 48000,
     audioChannels: 2,
     format: 's16le'
