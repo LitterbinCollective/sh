@@ -41,6 +41,7 @@ export default class Context {
     if (!this.flattened || this.flattened.length === 0) return;
     let last: Chatsound | undefined;
 
+    const downloading: string[] = [];
     let paths = await Promise.all(
       this.flattened.map(scope => {
         const sound = this.chatsounds.getRequiredSound(scope, last);
@@ -48,8 +49,10 @@ export default class Context {
 
         if (!sound) return;
 
-        // if parser found it, this should be able to too
-        return this.chatsounds.cache.getSound((sound as Chatsound).url);
+        const used = downloading.includes(sound.url);
+        if (!used) downloading.push(sound.url);
+
+        return this.chatsounds.cache.getSound(sound.url, !used);
       })
     );
 

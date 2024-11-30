@@ -28,14 +28,24 @@ export default class CacheManager {
     } catch (err) {}
   }
 
-  private getCachedSourceFilename(identifier: string) {
+  private async getCachedSourceFilename(identifier: string) {
     const filename = createHash('sha256').update(identifier).digest('hex');
-    return join(this.directory, SOURCES_CACHE_DIRECTORY, filename + '.json');
+    const folder = join(this.directory, SOURCES_CACHE_DIRECTORY, filename.slice(0, 2), filename.slice(2, 4));
+
+    if (!existsSync(folder))
+      await promises.mkdir(folder, { recursive: true });
+
+    return join(folder, filename + '.json');
   }
 
-  private getCachedSoundFilename(url: string) {
+  private async getCachedSoundFilename(url: string) {
     const filename = createHash('sha256').update(url).digest('hex');
-    return join(this.directory, SOUNDS_CACHE_DIRECTORY, filename + '.ogg');
+    const folder = join(this.directory, SOUNDS_CACHE_DIRECTORY, filename.slice(0, 2), filename.slice(2, 4));
+
+    if (!existsSync(folder))
+      await promises.mkdir(folder, { recursive: true });
+
+    return join(folder, filename + '.ogg');
   }
 
   private get cachedDurationsFile() {
@@ -118,12 +128,10 @@ export default class CacheManager {
     });
   }
 
-  public async getSound(url: string) {
-    await this.createNeededDirectories();
+  public async getSound(url: string, download = true) {
+    const path = await this.getCachedSoundFilename(url);
 
-    const path = this.getCachedSoundFilename(url);
-
-    if (!existsSync(path)) {
+    if (!existsSync(path) && download) {
       const buffer = await this.convertToSuitableFormat(url);
       await promises.writeFile(path, buffer);
     }
@@ -134,7 +142,7 @@ export default class CacheManager {
   public async compareLocalList(hash: string, identifier: string) {
     await this.createNeededDirectories();
 
-    const path = this.getCachedSourceFilename(identifier);
+    const path = await this.getCachedSourceFilename(identifier);
 
     if (existsSync(path)) {
       try {
@@ -155,7 +163,7 @@ export default class CacheManager {
   ) {
     await this.createNeededDirectories();
 
-    const path = this.getCachedSourceFilename(identifier);
+    const path = await this.getCachedSourceFilename(identifier);
     await promises.writeFile(
       path,
       JSON.stringify({ sounds, hash } as CachedSource)

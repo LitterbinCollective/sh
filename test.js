@@ -16,20 +16,20 @@ async function update() {
 async function run(data) {
   data = data.toString().trim();
 
-  const context = sh.new('stream', data);
+  const context = sh.new(data);
   const speaker = new Speaker({
     channels: 2, // 2 channels
     bitDepth: 16, // 16-bit samples
-    sampleRate: 44100, // 48,000 Hz sample rate
+    sampleRate: 44100, // 44,100 Hz sample rate
   });
   speaker.on("end", () => speaker.close());
-  console.log(context.scope.children[0].children)
 
-  const audio = await context.audio({
+  const audio = await context.stream({
     sampleRate: 44100,
     audioChannels: 2,
     format: 's16le'
   });
+  if (!audio) return console.log('no audio :(');
   audio.pipe(speaker);
 }
 
