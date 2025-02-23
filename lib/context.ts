@@ -17,7 +17,7 @@ export default class Context {
   private _mute?: boolean;
   private readonly chatsounds;
 
-  constructor(chatsounds: Chatsounds, input: string) {
+  constructor(chatsounds: Chatsounds, input: string ) {
     this.chatsounds = chatsounds;
     this.scope = this.chatsounds.parser.parse(input);
   }

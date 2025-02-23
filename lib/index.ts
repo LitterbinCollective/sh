@@ -11,8 +11,9 @@ import {
   UNDERSCORE_DASH_REGEX,
 } from './utils';
 import Context from './context';
-import { BaseModifier } from './modifiers';
+import { BaseModifier, defaultModifiers } from './modifiers';
 import Parser, { Scope } from './parser';
+import WorkerContext from './workercontext';
 
 export * from './modifiers';
 
@@ -21,7 +22,7 @@ export default class Chatsounds {
   public list: Record<string, Record<string, Chatsound[]>> = {};
   public lookup: Record<string, Chatsound[]> = {};
   public parser: Parser = new Parser(this);
-  public modifiers: Record<string, typeof BaseModifier> = {};
+  public modifiers: Record<string, typeof BaseModifier> = defaultModifiers;
   private headers = {};
   private hashes: Record<string, string> = {};
 
@@ -243,6 +244,10 @@ export default class Chatsounds {
 
   public new(script: string) {
     return new Context(this, script);
+  }
+
+  public worker(script: string) {
+    return new WorkerContext(this, script);
   }
 
   public mergeSources() {

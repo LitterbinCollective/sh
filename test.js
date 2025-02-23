@@ -16,21 +16,25 @@ async function update() {
 async function run(data) {
   data = data.toString().trim();
 
-  const context = sh.new(data);
+  const last = performance.now();
+  const context = sh.worker(data);
+  console.log("creating took: ", performance.now() - last);
+
   const speaker = new Speaker({
     channels: 2, // 2 channels
     bitDepth: 16, // 16-bit samples
     sampleRate: 44100, // 44,100 Hz sample rate
   });
-  speaker.on("end", () => speaker.close());
+  speaker.on('end', () => speaker.close());
 
-  const audio = await context.stream({
+  const audio = await context.buffer({
     sampleRate: 44100,
     audioChannels: 2,
     format: 's16le'
   });
   if (!audio) return console.log('no audio :(');
-  audio.pipe(speaker);
+  speaker.write(audio);
+  speaker.end();
 }
 
 (async function() {
@@ -40,3 +44,5 @@ async function run(data) {
 
   process.stdin.on("data", run);
 })();
+
+setInterval(() => console.log(Date.now()), 100);
